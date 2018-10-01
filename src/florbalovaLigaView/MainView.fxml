@@ -33,7 +33,7 @@
       <TextField fx:id="pocetHracov" layoutX="247.0" layoutY="208.0" prefHeight="40.0" prefWidth="60.0" />
       <Button layoutX="8.0" layoutY="578.0" mnemonicParsing="false" prefHeight="48.0" prefWidth="132.0" text="Uloz XML" />
       <Button layoutX="383.0" layoutY="578.0" mnemonicParsing="false" prefHeight="48.0" prefWidth="132.0" text="Zobraz XML" />
-      <Button layoutX="192.0" layoutY="578.0" mnemonicParsing="false" prefHeight="48.0" prefWidth="132.0" text="Validuj XML" />
+      <Button layoutX="192.0" layoutY="578.0" mnemonicParsing="false" prefHeight="48.0" prefWidth="132.0" text="Validuj XML" onAction="#ValidateXML"/>
       <TextField fx:id="email" layoutX="246.0" layoutY="163.0" onKeyReleased="#checkEmail" prefHeight="39.0" prefWidth="244.0" />
       <Label layoutX="273.0" layoutY="265.0" prefHeight="35.0" prefWidth="92.0" text="Pohlavie">
          <font>

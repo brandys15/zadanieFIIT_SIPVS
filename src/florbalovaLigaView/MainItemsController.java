@@ -7,6 +7,19 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Alert.AlertType;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javax.swing.JFileChooser;
+
+import java.awt.Component;
+import java.io.File;    
+import javax.xml.XMLConstants;
+import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.*;
+import org.xml.sax.SAXException; 
+import org.xml.sax.SAXParseException;
+import java.io.IOException;
+import javax.swing.JOptionPane;
 public class MainItemsController {
 	
 	ObservableList<String> pohlavieList = FXCollections.observableArrayList("Muz","Zena");
@@ -21,7 +34,6 @@ public class MainItemsController {
 	private TextField email;	
 	@FXML 
 	private TextField pocetHracov;
-
 	@FXML
 	private ComboBox<String> pohlavieBox1;
 	@FXML
@@ -118,6 +130,49 @@ public class MainItemsController {
         alert.setContentText(contentText);
 
         alert.showAndWait();
+    }
+    
+    @FXML protected void ValidateXML(ActionEvent event) {
+    	Component frame = null;
+    	File xsdfile = null;
+    	File xmlfile = null;
+    	JFileChooser fileChooser = new JFileChooser();
+    	fileChooser.setMultiSelectionEnabled(true);
+    	fileChooser.setCurrentDirectory(new File(System.getProperty("user.home")));
+    	fileChooser.showOpenDialog(frame);
+    	File[] files = fileChooser.getSelectedFiles();
+    	if(files.length != 2) {
+    		this.setWarning("Chybny pocet suborov", "Vyber 2 subory", "Len XML a XSD");
+    		return;
+    	}
+    	for(int i=0; i<2; i++){
+    		if (files[i].getName().toLowerCase().contains("xml")) {
+        		xmlfile = files[i];
+        	} else {
+        		xsdfile = files[i];
+        	}
+    	}
+    	if (xmlfile == null || xsdfile == null) {
+    		this.setWarning("Chybny pocet suborov", "Vyber 2 subory", "Len XML a XSD");
+    		return;
+    	}
+    	Source xmlFile = new StreamSource(xmlfile);
+    	SchemaFactory schemaFactory = SchemaFactory
+    	    .newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+    	try {
+    		Schema schema = schemaFactory.newSchema(xsdfile);
+    	  	Validator validator = schema.newValidator();
+    	  	validator.validate(xmlFile);
+    	  	JOptionPane.showMessageDialog(frame,
+    	  			xmlfile.getName() + " is valid",
+    			    "System message",
+    			    JOptionPane.PLAIN_MESSAGE);
+    	} catch (SAXException e) {
+    		JOptionPane.showMessageDialog(frame,
+      			  xmlfile.getName() + " is invalid. Reason: Line " + ((SAXParseException) e).getLineNumber() + ". " + e.getMessage(),
+      			    "System message",
+      			    JOptionPane.PLAIN_MESSAGE);
+    	} catch (IOException e) {}
     }
 
 }
