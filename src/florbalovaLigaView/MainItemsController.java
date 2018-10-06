@@ -158,9 +158,9 @@ public class MainItemsController {
 				gender.setTextContent("f");
 			
 			if (ligistaBox1.getValue().equals("Áno"))
-				gender.setTextContent("true");
+				leaguest.setTextContent("true");
 			else if (ligistaBox1.getValue().equals("Nie"))
-				gender.setTextContent("false");
+				leaguest.setTextContent("false");
 			
 			player.appendChild(firstname);
 			player.appendChild(lastname);
