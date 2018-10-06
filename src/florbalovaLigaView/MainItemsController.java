@@ -1,11 +1,9 @@
 package florbalovaLigaView;
 
-import java.awt.Component;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import javax.swing.JFileChooser;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -349,52 +347,33 @@ public class MainItemsController {
 	
 	@FXML
 	protected void ValidateXML(ActionEvent event) {
-		Component frame = null;
 		File xsdfile = null;
 		File xmlfile = null;
-		JFileChooser fileChooser = new JFileChooser();
+		FileChooser fileChooser = new FileChooser();
 		
-		fileChooser.setDialogTitle("Choose 2 files");
-		fileChooser.setMultiSelectionEnabled(true);
-		fileChooser.setCurrentDirectory(new File(System.getProperty("user.home")));
-		fileChooser.showOpenDialog(frame);
-		
-		File[] files = fileChooser.getSelectedFiles();
-		
-		if (files.length != 2) {
-			this.setWarning("Chybny poèet súborov", "Vyber 2 súbory!", "Len XML a XSD");
-			return;
-		}
-		for (int i = 0; i < 2; i++) {
-			if (files[i].getName().toLowerCase().contains("xml")) {
-				xmlfile = files[i];
-			} else {
-				xsdfile = files[i];
-			}
-		}
-		if (xmlfile == null || xsdfile == null) {
-			this.setWarning("Chybny poèet súborov", "Vyber 2 súbory!", "Len XML a XSD");
-			return;
-		}
-		Source xmlFile = new StreamSource(xmlfile);
-		SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-		try {
-			Schema schema = schemaFactory.newSchema(xsdfile);
-			Validator validator = schema.newValidator();
-			validator.validate(xmlFile);
-			
-			setInformation("Success!", xmlfile.getName() + " is valid.", null);
-			//JOptionPane.showMessageDialog(frame, xmlfile.getName() + " is valid", "System message", JOptionPane.PLAIN_MESSAGE);
-		} catch (SAXException e) {
-			setError("Error!", xmlfile.getName() + " is invalid.", "Reason: Line " + + ((SAXParseException) e).getLineNumber() + ". " + e.getMessage());
-			/* JOptionPane
-				.showMessageDialog(
-							frame, xmlfile.getName() + " is invalid. Reason: Line "
-									+ ((SAXParseException) e).getLineNumber() + ". " + e.getMessage(),
-							"System message", JOptionPane.PLAIN_MESSAGE); */
-		} catch (IOException e) {
-			this.setError("Error!", e.getMessage(), e.getStackTrace().toString());
-		}
+		fileChooser.setTitle("Please choose an XML file.");
+		fileChooser.setInitialDirectory(new File(System.getProperty("user.home")));
+		xmlfile = fileChooser.showOpenDialog(null);
+		if (xmlfile != null) {
+			fileChooser.setTitle("Please choose an XSD file.");
+			xsdfile = fileChooser.showOpenDialog(null);
+			if (xsdfile != null) {
+				Source xmlFile = new StreamSource(xmlfile);
+				SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+				try {
+					Schema schema = schemaFactory.newSchema(xsdfile);
+					Validator validator = schema.newValidator();
+					validator.validate(xmlFile);					
+					setInformation("Success!", xmlfile.getName() + " is valid.", null);
+				} catch (SAXException e) {
+					setError("Error!", xmlfile.getName() + " is invalid.", "Reason: Line " + ((SAXParseException) e).getLineNumber() + ". " + e.getMessage());
+				} catch (IOException e) {
+					this.setError("Error!", e.getMessage(), e.getStackTrace().toString());
+				}
+			} 
+			else setError("Error!", "No file was selected! Please choose an XSD file.", null);		
+		} 
+		else setError("Error!", "No file was selected! Please choose an XML file.", null);
 	}
 
 	@FXML
