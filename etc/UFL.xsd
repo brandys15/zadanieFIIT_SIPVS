@@ -1,0 +1,27 @@
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="ufl_team">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element type="xs:string" name="team_name"/>
+        <xs:element type="xs:string" name="email"/>
+        <xs:element type="xs:integer" name="phone_number"/>
+        <xs:element name="players">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="player" maxOccurs="4" minOccurs="1">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element type="xs:string" name="firstname"/>
+                    <xs:element type="xs:string" name="lastname"/>
+                    <xs:element type="xs:string" name="gender"/>
+                    <xs:element type="xs:boolean" name="leaguest"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>
