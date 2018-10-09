@@ -8,7 +8,7 @@
         <xs:element name="players">
           <xs:complexType>
             <xs:sequence>
-              <xs:element name="player" maxOccurs="4" minOccurs="1">
+              <xs:element name="player" maxOccurs="5" minOccurs="3">
                 <xs:complexType>
                   <xs:sequence>
                     <xs:element type="xs:string" name="firstname"/>

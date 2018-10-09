@@ -87,10 +87,17 @@ public class MainItemsController {
 	private TextField Meno5;
 	@FXML
 	private TextField Priezvisko5;
-	
+
 	private DocumentBuilderFactory docFactory = null;
 	private DocumentBuilder docBuilder = null;
-	
+
+	private ArrayList<TextField> listOfNameFields = null;
+	private ArrayList<TextField> listOfSurnameFields = null;
+	private ArrayList<ComboBox<String>> listOfGenderBoxes = null;
+	private ArrayList<ComboBox<String>> listOfLeaguestBoxes = null;
+
+	private static final int MINIMUM_PLAYER_COUNT = 3;
+
 	@FXML
 	private void initialize() {
 		pohlavieBox1.setItems(pohlavieList);
@@ -110,216 +117,143 @@ public class MainItemsController {
 
 		initializeVariables();
 	}
+
 	private void initializeVariables() {
 		try {
 			docFactory = DocumentBuilderFactory.newInstance();
 			docBuilder = docFactory.newDocumentBuilder();
+
+			listOfNameFields = new ArrayList<TextField>();
+			listOfSurnameFields = new ArrayList<TextField>();
+			listOfGenderBoxes = new ArrayList<ComboBox<String>>();
+			listOfLeaguestBoxes = new ArrayList<ComboBox<String>>();
+
+			listOfNameFields.add(Meno1);
+			listOfNameFields.add(Meno2);
+			listOfNameFields.add(Meno3);
+			listOfNameFields.add(Meno4);
+			listOfNameFields.add(Meno5);
+
+			listOfSurnameFields.add(Priezvisko1);
+			listOfSurnameFields.add(Priezvisko2);
+			listOfSurnameFields.add(Priezvisko3);
+			listOfSurnameFields.add(Priezvisko4);
+			listOfSurnameFields.add(Priezvisko5);
+
+			listOfGenderBoxes.add(pohlavieBox1);
+			listOfGenderBoxes.add(pohlavieBox2);
+			listOfGenderBoxes.add(pohlavieBox3);
+			listOfGenderBoxes.add(pohlavieBox4);
+			listOfGenderBoxes.add(pohlavieBox5);
+
+			listOfLeaguestBoxes.add(ligistaBox1);
+			listOfLeaguestBoxes.add(ligistaBox2);
+			listOfLeaguestBoxes.add(ligistaBox3);
+			listOfLeaguestBoxes.add(ligistaBox4);
+			listOfLeaguestBoxes.add(ligistaBox5);
+
 		} catch (Exception e) {
 			setError("Error!", e.getMessage(), e.getStackTrace().toString());
 		}
 	}
 
+	private int checkNumOfCompletedFields(TextField name, TextField surname, ComboBox<String> gender,
+			ComboBox<String> leaguest) {
+		int count = 0;
+
+		if (!name.getText().equals(""))
+			count++;
+		if (!surname.getText().equals(""))
+			count++;
+		if (gender.getValue() != null)
+			count++;
+		if (leaguest.getValue() != null)
+			count++;
+
+		return count;
+	}
+
 	private boolean checkString(String text) {
 		return text.matches("[a-zA-Z ]+");
 	}
+
 	private boolean checkEmail(String text) {
-		return text.matches("[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,4}");
+		return text.matches("[a-zA-Z0-9.,/*\\_%+-]+@[a-zA-Z]+\\.[a-zA-Z]{2,4}");
 	}
+
 	private boolean checkNum(String text) {
-		return text.matches("(\\+)?[0-9]+");
+		return text.matches("(\\+421|0)[0-9]{9}");
 	}
-	
+
 	private Element getPlayersElem(Document doc) {
 		Element playersElem = doc.createElement("players");
 		ArrayList<Element> listOfPlayers = new ArrayList<Element>();
-		
-		if(!Meno1.getText().equals("") && !Priezvisko1.getText().equals("") && pohlavieBox1.getValue() != null && ligistaBox1.getValue() != null) {
-			Element player = doc.createElement("player");
-			Element firstname = doc.createElement("firstname");
-			Element lastname = doc.createElement("lastname");
-			Element gender = doc.createElement("gender");
-			Element leaguest = doc.createElement("leaguest");
-			
-			firstname.setTextContent(Meno1.getText());
-			lastname.setTextContent(Priezvisko1.getText());
-			
-			if(!checkString(Meno1.getText())) {
-				setError("Error!", "Invalid string for name.", null);
+
+		for (int i = 0; i < listOfNameFields.size(); i++) {
+			int numOfCompletedFields = checkNumOfCompletedFields(listOfNameFields.get(i), listOfSurnameFields.get(i),
+					listOfGenderBoxes.get(i), listOfLeaguestBoxes.get(i));
+
+			if (numOfCompletedFields == 4) {
+				Element player = doc.createElement("player");
+				Element firstname = doc.createElement("firstname");
+				Element lastname = doc.createElement("lastname");
+				Element gender = doc.createElement("gender");
+				Element leaguest = doc.createElement("leaguest");
+
+				firstname.setTextContent(listOfNameFields.get(i).getText());
+				lastname.setTextContent(listOfSurnameFields.get(i).getText());
+
+				if (!checkString(listOfNameFields.get(i).getText())) {
+					setError("Error!", "Invalid string for name.", null);
+					return null;
+				}
+				if (!checkString(listOfSurnameFields.get(i).getText())) {
+					setError("Error!", "Invalid string for surname.", null);
+					return null;
+				}
+
+				if (listOfGenderBoxes.get(i).getValue().equals("Muž"))
+					gender.setTextContent("m");
+				else if (listOfGenderBoxes.get(i).getValue().equals("Žena"))
+					gender.setTextContent("f");
+
+				if (listOfLeaguestBoxes.get(i).getValue().equals("Áno"))
+					leaguest.setTextContent("true");
+				else if (listOfLeaguestBoxes.get(i).getValue().equals("Nie"))
+					leaguest.setTextContent("false");
+
+				player.appendChild(firstname);
+				player.appendChild(lastname);
+				player.appendChild(gender);
+				player.appendChild(leaguest);
+
+				listOfPlayers.add(player);
+			} else if (numOfCompletedFields > 0 && numOfCompletedFields < 4) {
+				setError("Error!", "Not all fields for the current player are filled in.", null);
+				if (listOfPlayers.size() < MINIMUM_PLAYER_COUNT) {
+					setError("Error!", "Not enough players!",
+							"Minimum count for registrating a team is " + MINIMUM_PLAYER_COUNT + '.');
+				}
 				return null;
-			}
-			if(!checkString(Priezvisko1.getText())) {
-				setError("Error!", "Invalid string for surname.", null);
-				return null;
-			}
-			
-			if (pohlavieBox1.getValue().equals("Muž"))
-				gender.setTextContent("m");
-			else if (pohlavieBox1.getValue().equals("Žena"))
-				gender.setTextContent("f");
-			
-			if (ligistaBox1.getValue().equals("Áno"))
-				leaguest.setTextContent("true");
-			else if (ligistaBox1.getValue().equals("Nie"))
-				leaguest.setTextContent("false");
-			
-			player.appendChild(firstname);
-			player.appendChild(lastname);
-			player.appendChild(gender);
-			player.appendChild(leaguest);
-			
-			listOfPlayers.add(player);
+			} else if (numOfCompletedFields == 0)
+				if ((i + 1) < listOfNameFields.size())
+					if (checkNumOfCompletedFields(listOfNameFields.get(i + 1), listOfSurnameFields.get(i + 1),
+							listOfGenderBoxes.get(i + 1), listOfLeaguestBoxes.get(i + 1)) == 4)
+						continue;
 		}
-		
-		if(!Meno2.getText().equals("") && !Priezvisko2.getText().equals("") && pohlavieBox2.getValue() != null && ligistaBox2.getValue() != null) {
-			Element player = doc.createElement("player");
-			Element firstname = doc.createElement("firstname");
-			Element lastname = doc.createElement("lastname");
-			Element gender = doc.createElement("gender");
-			Element leaguest = doc.createElement("leaguest");
-			
-			firstname.setTextContent(Meno2.getText());
-			lastname.setTextContent(Priezvisko2.getText());
-			
-			if(!checkString(Meno2.getText())) {
-				setError("Error!", "Invalid string for name.", null);
-				return null;
-			}
-			if(!checkString(Priezvisko2.getText())) {
-				setError("Error!", "Invalid string for surname.", null);
-				return null;
-			}
-			
-			if (pohlavieBox2.getValue().equals("Muž"))
-				gender.setTextContent("m");
-			else if (pohlavieBox2.getValue().equals("Žena"))
-				gender.setTextContent("f");
-			if (ligistaBox2.getValue().equals("Áno"))
-				gender.setTextContent("true");
-			else if (ligistaBox2.getValue().equals("Nie"))
-				gender.setTextContent("false");
-			
-			player.appendChild(firstname);
-			player.appendChild(lastname);
-			player.appendChild(gender);
-			player.appendChild(leaguest);
-			
-			listOfPlayers.add(player);
+
+		if (listOfPlayers.size() < MINIMUM_PLAYER_COUNT) {
+			setError("Error!", "Not enough players!",
+					"Minimum count for registrating a team is " + MINIMUM_PLAYER_COUNT + '.');
+			return null;
 		}
-		
-		if(!Meno3.getText().equals("") && !Priezvisko3.getText().equals("") && pohlavieBox3.getValue() != null && ligistaBox3.getValue() != null) {
-			Element player = doc.createElement("player");
-			Element firstname = doc.createElement("firstname");
-			Element lastname = doc.createElement("lastname");
-			Element gender = doc.createElement("gender");
-			Element leaguest = doc.createElement("leaguest");
-			
-			firstname.setTextContent(Meno3.getText());
-			lastname.setTextContent(Priezvisko3.getText());
-			
-			if(!checkString(Meno3.getText())) {
-				setError("Error!", "Invalid string for name.", null);
-				return null;
-			}
-			if(!checkString(Priezvisko3.getText())) {
-				setError("Error!", "Invalid string for surname.", null);
-				return null;
-			}
-			
-			if (pohlavieBox3.getValue().equals("Muž"))
-				gender.setTextContent("m");
-			else if (pohlavieBox3.getValue().equals("Žena"))
-				gender.setTextContent("f");
-			if (ligistaBox3.getValue().equals("Áno"))
-				gender.setTextContent("true");
-			else if (ligistaBox3.getValue().equals("Nie"))
-				gender.setTextContent("false");
-			
-			player.appendChild(firstname);
-			player.appendChild(lastname);
-			player.appendChild(gender);
-			player.appendChild(leaguest);
-			
-			listOfPlayers.add(player);
-		}
-		
-		if(!Meno4.getText().equals("") && !Priezvisko4.getText().equals("") && pohlavieBox4.getValue() != null && ligistaBox4.getValue() != null) {
-			Element player = doc.createElement("player");
-			Element firstname = doc.createElement("firstname");
-			Element lastname = doc.createElement("lastname");
-			Element gender = doc.createElement("gender");
-			Element leaguest = doc.createElement("leaguest");
-			
-			firstname.setTextContent(Meno4.getText());
-			lastname.setTextContent(Priezvisko4.getText());
-			
-			if(!checkString(Meno4.getText())) {
-				setError("Error!", "Invalid string for name.", null);
-				return null;
-			}
-			if(!checkString(Priezvisko4.getText())) {
-				setError("Error!", "Invalid string for surname.", null);
-				return null;
-			}
-			
-			if (pohlavieBox4.getValue().equals("Muž"))
-				gender.setTextContent("m");
-			else if (pohlavieBox4.getValue().equals("Žena"))
-				gender.setTextContent("f");
-			if (ligistaBox4.getValue().equals("Áno"))
-				gender.setTextContent("true");
-			else if (ligistaBox4.getValue().equals("Nie"))
-				gender.setTextContent("false");
-			
-			player.appendChild(firstname);
-			player.appendChild(lastname);
-			player.appendChild(gender);
-			player.appendChild(leaguest);
-			
-			listOfPlayers.add(player);
-		}		
-		
-		if(!Meno5.getText().equals("") && !Priezvisko5.getText().equals("") && pohlavieBox5.getValue() != null && ligistaBox5.getValue() != null) {
-			Element player = doc.createElement("player");
-			Element firstname = doc.createElement("firstname");
-			Element lastname = doc.createElement("lastname");
-			Element gender = doc.createElement("gender");
-			Element leaguest = doc.createElement("leaguest");
-			
-			firstname.setTextContent(Meno5.getText());
-			lastname.setTextContent(Priezvisko5.getText());
-			
-			if(!checkString(Meno5.getText())) {
-				setError("Error!", "Invalid string for name.", null);
-				return null;
-			}
-			if(!checkString(Priezvisko5.getText())) {
-				setError("Error!", "Invalid string for surname.", null);
-				return null;
-			}
-			
-			if (pohlavieBox5.getValue().equals("Muž"))
-				gender.setTextContent("m");
-			else if (pohlavieBox5.getValue().equals("Žena"))
-				gender.setTextContent("f");
-			if (ligistaBox5.getValue().equals("Áno"))
-				gender.setTextContent("true");
-			else if (ligistaBox5.getValue().equals("Nie"))
-				gender.setTextContent("false");
-			
-			player.appendChild(firstname);
-			player.appendChild(lastname);
-			player.appendChild(gender);
-			player.appendChild(leaguest);
-			
-			listOfPlayers.add(player);
-		}
-		
-		for(Element e: listOfPlayers)
+
+		for (Element e : listOfPlayers)
 			playersElem.appendChild(e);
-		
+
 		return playersElem;
 	}
-	
+
 	private void setInformation(String title, String headerText, String contentText) {
 		Alert alert = new Alert(AlertType.INFORMATION);
 		alert.setTitle(title);
@@ -327,7 +261,8 @@ public class MainItemsController {
 		alert.setContentText(contentText);
 
 		alert.showAndWait();
-	}	
+	}
+
 	private void setWarning(String title, String headerText, String contentText) {
 		Alert alert = new Alert(AlertType.WARNING);
 		alert.setTitle(title);
@@ -336,6 +271,7 @@ public class MainItemsController {
 
 		alert.showAndWait();
 	}
+
 	private void setError(String title, String headerText, String contentText) {
 		Alert alert = new Alert(AlertType.ERROR);
 		alert.setTitle(title);
@@ -344,18 +280,23 @@ public class MainItemsController {
 
 		alert.showAndWait();
 	}
-	
+
 	@FXML
 	protected void ValidateXML(ActionEvent event) {
 		File xsdfile = null;
 		File xmlfile = null;
 		FileChooser fileChooser = new FileChooser();
-		
+
 		fileChooser.setTitle("Please choose an XML file.");
 		fileChooser.setInitialDirectory(new File(System.getProperty("user.home")));
+		fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML", "*.xml"));
+
 		xmlfile = fileChooser.showOpenDialog(null);
 		if (xmlfile != null) {
 			fileChooser.setTitle("Please choose an XSD file.");
+			fileChooser.getExtensionFilters().clear();
+			fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XSD", "*.xsd"));
+
 			xsdfile = fileChooser.showOpenDialog(null);
 			if (xsdfile != null) {
 				Source xmlFile = new StreamSource(xmlfile);
@@ -363,17 +304,18 @@ public class MainItemsController {
 				try {
 					Schema schema = schemaFactory.newSchema(xsdfile);
 					Validator validator = schema.newValidator();
-					validator.validate(xmlFile);					
+					validator.validate(xmlFile);
 					setInformation("Success!", xmlfile.getName() + " is valid.", null);
 				} catch (SAXException e) {
-					setError("Error!", xmlfile.getName() + " is invalid.", "Reason: Line " + ((SAXParseException) e).getLineNumber() + ". " + e.getMessage());
+					setError("Error!", xmlfile.getName() + " is invalid.",
+							"Reason: Line " + ((SAXParseException) e).getLineNumber() + ". " + e.getMessage());
 				} catch (IOException e) {
 					this.setError("Error!", e.getMessage(), e.getStackTrace().toString());
 				}
-			} 
-			else setError("Error!", "No file was selected! Please choose an XSD file.", null);		
-		} 
-		else setError("Error!", "No file was selected! Please choose an XML file.", null);
+			} else
+				setError("Error!", "No file was selected! Please choose an XSD file.", null);
+		} else
+			setError("Error!", "No file was selected! Please choose an XML file.", null);
 	}
 
 	@FXML
@@ -384,56 +326,60 @@ public class MainItemsController {
 
 			Element root = doc.createElement("ufl_team");
 			doc.appendChild(root);
-			
+
 			Element teamName = doc.createElement("team_name");
 			teamName.setTextContent(this.nazovTimu.getText());
 			Element email = doc.createElement("email");
 			email.setTextContent(this.email.getText());
 			Element phoneNum = doc.createElement("phone_number");
 			phoneNum.setTextContent(this.telCislo.getText());
-			
-			Element players = getPlayersElem(doc);
-			if(players == null)
+
+			if (this.nazovTimu.getText().equals("")) {
+				setError("Error!", "Missing team name!", null);
 				return;
-			
+			}
+			if (!checkEmail(this.email.getText())) {
+				setError("Error!", "Wrong e-mail format!", null);
+				return;
+			}
+			if (!checkNum(this.telCislo.getText())) {
+				setError("Error!", "Wrong format of phone number!", "Allowed are 0900000000 or +421900000000!");
+				return;
+			}
+
+			Element players = getPlayersElem(doc);
+			if (players == null)
+				return;
+
 			root.appendChild(teamName);
 			root.appendChild(email);
 			root.appendChild(phoneNum);
 			root.appendChild(players);
-			
+
 			Transformer transformer = TransformerFactory.newInstance().newTransformer();
 			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 			DOMSource xmlSource = new DOMSource(doc);
-			
-			if(!checkEmail(this.email.getText())) {
-				setError("Error!", "Wrong format!", null);
-				return;
-			}
-			if(!checkNum(this.telCislo.getText())) {
-				setError("Error!", "Wrong format of phone number!", "Allowed are 0900000000 or +421900000000!");
-				return;
-			}
-			
+
 			FileChooser chooser = new FileChooser();
 			chooser.setTitle("Save file as");
 			chooser.setInitialDirectory(new File(System.getProperty("user.home")));
 			chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML", "*.xml"));
-			
+
 			File file = chooser.showSaveDialog(null);
-			if(file != null) {
+			if (file != null) {
 				StreamResult stream = new StreamResult(file);
 				transformer.transform(xmlSource, stream);
-			}
-			else setError("Error!", "No file was selected for creation!", null);
-			
+			} else
+				setError("Error!", "No file was selected for creation!", null);
+
 		} catch (Exception e) {
 			setError("Error!", e.getMessage(), e.getStackTrace().toString());
 		}
 	}
-	
+
 	@FXML
 	protected void VisualizeXML(ActionEvent event) {
-		
+
 	}
 }
 
