@@ -12,10 +12,10 @@
                 <xs:complexType>
                   <xs:sequence>
                     <xs:element type="xs:string" name="firstname"/>
-                    <xs:element type="xs:string" name="lastname"/>
-                    <xs:element type="xs:string" name="gender"/>
+                    <xs:element type="xs:string" name="lastname"/> 
                     <xs:element type="xs:boolean" name="leaguest"/>
                   </xs:sequence>
+                  <xs:attribute type="xs:string" name="gender" use="optional"/>
                 </xs:complexType>
               </xs:element>
             </xs:sequence>

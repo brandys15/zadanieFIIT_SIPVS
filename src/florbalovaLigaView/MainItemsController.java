@@ -215,7 +215,7 @@ public class MainItemsController {
 				Element player = doc.createElement("player");
 				Element firstname = doc.createElement("firstname");
 				Element lastname = doc.createElement("lastname");
-				Element gender = doc.createElement("gender");
+//				Element gender = doc.createElement("gender");
 				Element leaguest = doc.createElement("leaguest");
 
 				firstname.setTextContent(listOfNameFields.get(i).getText());
@@ -230,11 +230,16 @@ public class MainItemsController {
 					return null;
 				}
 
-				if (listOfGenderBoxes.get(i).getValue().equals("Muž"))
+/*				if (listOfGenderBoxes.get(i).getValue().equals("Muž"))
 					gender.setTextContent("m");
 				else if (listOfGenderBoxes.get(i).getValue().equals("Žena"))
 					gender.setTextContent("f");
-
+*/
+				if (listOfGenderBoxes.get(i).getValue().equals("Muž"))
+					player.setAttribute("gender", "m");
+				else if (listOfGenderBoxes.get(i).getValue().equals("Žena"))
+					player.setAttribute("gender", "f");
+				
 				if (listOfLeaguestBoxes.get(i).getValue().equals("Áno"))
 					leaguest.setTextContent("true");
 				else if (listOfLeaguestBoxes.get(i).getValue().equals("Nie"))
@@ -242,7 +247,7 @@ public class MainItemsController {
 
 				player.appendChild(firstname);
 				player.appendChild(lastname);
-				player.appendChild(gender);
+//				player.appendChild(gender);
 				player.appendChild(leaguest);
 
 				listOfPlayers.add(player);

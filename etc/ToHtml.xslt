@@ -15,33 +15,45 @@
 					border: 1px ;
 					background-color: white;
 					color: black;
-					text-align:right;
+					text-align: left;
+					border: 1px solid black;
 					}
 
 					th {
-					background-color: #2E9AFE;
-					color: white;
+					background-color: white;
+					color: black;
+					text-align: left;
 					}
 
+					td {
+					border: 1px solid black;
+					}
 				</style>
-				<h1>Prihlasovaci formular do UFL</h1>
-				<b>Nazov timu: </b>
-				<xsl:value-of select="ufl_team/team_name" /><br></br>
-				<b>Kapitanov email: </b>
-				<xsl:value-of select="ufl_team/email" /><br></br>
-				<b>Kapitanove cislo: </b>
-				<xsl:value-of select="ufl_team/phone_number" /><br></br>
-
-
+				<h1>Prihlasovaci formular do UFL ligy</h1>
+				<table class="main">
+				<tr>
+					<th style="width:150px">Nazov timu: </th>
+					<td style="width:120px"> <xsl:value-of select="ufl_team/team_name" /> </td>
+ 				</tr>
+ 				<tr>
+					<th style="width:120px">Kapitanov email: </th>
+					<td> <xsl:value-of select="ufl_team/email" /> </td>
+				</tr>
+				<tr>
+					<th style="width:120px">Kapitanove cislo: </th>
+					<td> <xsl:value-of select="ufl_team/phone_number" /></td>
+				</tr>
+				</table>
+			<br></br>
 			</head>
 
 			<body>
 				<table class="tfmt">
 					<tr>
-						<th style="width:250px">Meno:</th>
-						<th style="width:350px">Priezvisko:</th>
-						<th style="width:250px">Pohlavie:</th>
-						<th style="width:250px">Ligista:</th>
+						<th style="width:90px">Meno:</th>
+						<th style="width:120px">Priezvisko:</th>
+						<th style="width:60px">Pohlavie:</th>
+						<th style="width:60px">Ligista:</th>
 
 
 					</tr>
@@ -57,7 +69,7 @@
 							</td>
 
 							<td class="colfmt">
-								<xsl:value-of select="gender" />
+								<xsl:value-of select="@gender" />
 							</td>
 							<td class="colfmt">
 								<xsl:value-of select="leaguest" />
