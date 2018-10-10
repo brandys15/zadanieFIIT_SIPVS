@@ -24,7 +24,7 @@
 					}
 
 				</style>
-
+				<h1>Prihlasovaci formular do UFL</h1>
 				<b>Nazov timu: </b>
 				<xsl:value-of select="ufl_team/team_name" /><br></br>
 				<b>Kapitanov email: </b>

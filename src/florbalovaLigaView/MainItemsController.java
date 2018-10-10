@@ -161,6 +161,19 @@ public class MainItemsController {
 			setError("Error!", e.getMessage(), e.getStackTrace().toString());
 		}
 	}
+	
+	private void clearVariables() {
+		this.nazovTimu.clear();
+		this.telCislo.clear();
+		this.email.clear();
+		
+		for(int i = 0; i < listOfNameFields.size(); i++ ) {
+			this.listOfNameFields.get(i).clear();
+			this.listOfGenderBoxes.get(i).valueProperty().set(null);
+			this.listOfSurnameFields.get(i).clear();
+			this.listOfLeaguestBoxes.get(i).valueProperty().set(null);
+		}
+	}
 
 	private int checkNumOfCompletedFields(TextField name, TextField surname, ComboBox<String> gender,
 			ComboBox<String> leaguest) {
@@ -375,6 +388,7 @@ public class MainItemsController {
 			if (file != null) {
 				StreamResult stream = new StreamResult(file);
 				transformer.transform(xmlSource, stream);
+				clearVariables();
 			} else
 				setError("Error!", "No file was selected for creation!", null);
 
