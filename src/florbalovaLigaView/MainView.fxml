@@ -87,7 +87,7 @@
       <!-- Buttons on the bottom part of the code -->
       <Button layoutX="8.0" layoutY="578.0" mnemonicParsing="false" prefHeight="48.0" prefWidth="132.0" text="Ulož XML" onAction="#GenerateXML"/>
       <Button layoutX="192.0" layoutY="578.0" mnemonicParsing="false" prefHeight="48.0" prefWidth="132.0" text="Validuj XML" onAction="#ValidateXML"/>
-      <Button layoutX="383.0" layoutY="578.0" mnemonicParsing="false" prefHeight="48.0" prefWidth="132.0" text="Zobraz XML" />
+      <Button layoutX="383.0" layoutY="578.0" mnemonicParsing="false" prefHeight="48.0" prefWidth="132.0" text="Zobraz XML" onAction="#VisualizeXML"/>
       
    </children>
 </AnchorPane>

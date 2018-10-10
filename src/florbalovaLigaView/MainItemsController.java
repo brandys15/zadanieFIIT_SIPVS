@@ -1,7 +1,9 @@
 package florbalovaLigaView;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.util.ArrayList;
 
 import javax.xml.XMLConstants;
@@ -10,7 +12,10 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.TransformerFactoryConfigurationError;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
@@ -283,6 +288,7 @@ public class MainItemsController {
 
 	@FXML
 	protected void ValidateXML(ActionEvent event) {
+		
 		File xsdfile = null;
 		File xmlfile = null;
 		FileChooser fileChooser = new FileChooser();
@@ -380,6 +386,84 @@ public class MainItemsController {
 	@FXML
 	protected void VisualizeXML(ActionEvent event) {
 
+		
+		File xslfile = null;
+		File xmlfile = null;
+		FileChooser fileChooser = new FileChooser();
+
+		fileChooser.setTitle("Please choose an XML file.");
+		fileChooser.setInitialDirectory(new File(System.getProperty("user.home")));
+		fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML", "*.xml"));
+
+		xmlfile = fileChooser.showOpenDialog(null);
+		if (xmlfile != null) {
+			fileChooser.setTitle("Please choose an XSL file.");
+			fileChooser.getExtensionFilters().clear();
+			fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XSLT", "*.xslt"));
+
+			xslfile = fileChooser.showOpenDialog(null);
+			if (xslfile != null) {
+				
+				
+				
+				Source xml = new StreamSource(xmlfile);
+				Source xsl = new StreamSource(xslfile);
+				
+				StringWriter sw = new StringWriter();
+
+				try {
+
+					
+					FileChooser chooser = new FileChooser();
+					chooser.setTitle("Save file as");
+					chooser.setInitialDirectory(new File(System.getProperty("user.home")));
+					chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("HTML", "*.html"));
+
+					File file = chooser.showSaveDialog(null);
+					if (file != null) {
+						StreamResult stream = new StreamResult(file);
+						FileWriter fw = new FileWriter(file);
+						
+						TransformerFactory tFactory = TransformerFactory.newInstance();
+						Transformer trasform = tFactory.newTransformer(xsl);
+						trasform.transform(xml, new StreamResult(sw));
+						fw.write(sw.toString());
+						fw.close();
+
+						
+					//	transformer.transform(xmlSource, stream);
+					} else
+						setError("Error!", "No file was selected for creation!", null);
+
+					
+
+				} catch (IOException | TransformerConfigurationException e) {
+					e.printStackTrace();
+				} catch (TransformerFactoryConfigurationError e) {
+					e.printStackTrace();
+				} catch (TransformerException e) {
+					e.printStackTrace();
+				}
+
+				/*
+				SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+				try {
+					Schema schema = schemaFactory.newSchema(xsdfile);
+					Validator validator = schema.newValidator();
+					validator.validate(xmlFile);
+					setInformation("Success!", xmlfile.getName() + " is valid.", null);
+				} catch (SAXException e) {
+					setError("Error!", xmlfile.getName() + " is invalid.",
+							"Reason: Line " + ((SAXParseException) e).getLineNumber() + ". " + e.getMessage());
+				} catch (IOException e) {
+					this.setError("Error!", e.getMessage(), e.getStackTrace().toString());
+				}*/
+				
+			} else
+				setError("Error!", "No file was selected! Please choose an XSL file.", null);
+		} else
+			setError("Error!", "No file was selected! Please choose an XML file.", null);
+		
 	}
 }
 
