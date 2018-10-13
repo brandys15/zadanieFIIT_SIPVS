@@ -29,18 +29,18 @@
 					border: 1px solid black;
 					}
 				</style>
-				<h1>Prihlasovaci formular do UFL ligy</h1>
+				<h1>Prihlasovací formulár do UFL ligy</h1>
 				<table class="main">
 				<tr>
-					<th style="width:150px">Nazov timu: </th>
+					<th style="width:150px">Názov tímu</th>
 					<td style="width:120px"> <xsl:value-of select="ufl_team/team_name" /> </td>
  				</tr>
  				<tr>
-					<th style="width:120px">Kapitanov email: </th>
+					<th style="width:120px">E-mail na kapitána</th>
 					<td> <xsl:value-of select="ufl_team/email" /> </td>
 				</tr>
 				<tr>
-					<th style="width:120px">Kapitanove cislo: </th>
+					<th style="width:120px">Tel. číslo na kapitána</th>
 					<td> <xsl:value-of select="ufl_team/phone_number" /></td>
 				</tr>
 				</table>
@@ -50,10 +50,10 @@
 			<body>
 				<table class="tfmt">
 					<tr>
-						<th style="width:90px">Meno:</th>
-						<th style="width:120px">Priezvisko:</th>
-						<th style="width:60px">Pohlavie:</th>
-						<th style="width:60px">Ligista:</th>
+						<th style="width:90px">Meno</th>
+						<th style="width:120px">Priezvisko</th>
+						<th style="width:60px">Pohlavie</th>
+						<th style="width:60px">Ligista</th>
 
 
 					</tr>

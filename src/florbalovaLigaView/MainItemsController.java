@@ -1,9 +1,12 @@
 package florbalovaLigaView;
 
+import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 import javax.xml.XMLConstants;
@@ -12,10 +15,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
-import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.TransformerFactoryConfigurationError;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
@@ -42,59 +42,58 @@ public class MainItemsController {
 
 	ObservableList<String> pohlavieList = FXCollections.observableArrayList("Muž", "Žena");
 	ObservableList<String> ligistaList = FXCollections.observableArrayList("Áno", "Nie");
-	// informacie v tabulke
-	// private boolean nazovCheck;
-	// private boolean checkNum;
-	// private boolean emailCheck;
+
 	@FXML
-	private TextField nazovTimu;
+	private TextField txtField_teamName;
 	@FXML
-	private TextField email;
+	private TextField txtField_email;
 	@FXML
-	private TextField telCislo;
+	private TextField txtField_phoneNum;
+	
 	@FXML
-	private ComboBox<String> pohlavieBox1;
+	private ComboBox<String> comboBox_gender_01;
 	@FXML
-	private ComboBox<String> ligistaBox1;
+	private ComboBox<String> comboBox_leaguest_01;
 	@FXML
-	private TextField Meno1;
+	private TextField txtField_name_01;
 	@FXML
-	private TextField Priezvisko1;
+	private TextField txtField_surname_01;
 	@FXML
-	private ComboBox<String> pohlavieBox2;
+	private ComboBox<String> comboBox_gender_02;
 	@FXML
-	private ComboBox<String> ligistaBox2;
+	private ComboBox<String> comboBox_leaguest_02;
 	@FXML
-	private TextField Meno2;
+	private TextField txtField_name_02;
 	@FXML
-	private TextField Priezvisko2;
+	private TextField txtField_surname_02;
 	@FXML
-	private ComboBox<String> pohlavieBox3;
+	private ComboBox<String> comboBox_gender_03;
 	@FXML
-	private ComboBox<String> ligistaBox3;
+	private ComboBox<String> comboBox_leaguest_03;
 	@FXML
-	private TextField Meno3;
+	private TextField txtField_name_03;
 	@FXML
-	private TextField Priezvisko3;
+	private TextField txtField_surname_03;
 	@FXML
-	private ComboBox<String> pohlavieBox4;
+	private ComboBox<String> comboBox_gender_04;
 	@FXML
-	private ComboBox<String> ligistaBox4;
+	private ComboBox<String> comboBox_leaguest_04;
 	@FXML
-	private TextField Meno4;
+	private TextField txtField_name_04;
 	@FXML
-	private TextField Priezvisko4;
+	private TextField txtField_surname_04;
 	@FXML
-	private ComboBox<String> pohlavieBox5;
+	private ComboBox<String> comboBox_gender_05;
 	@FXML
-	private ComboBox<String> ligistaBox5;
+	private ComboBox<String> comboBox_leaguest_05;
 	@FXML
-	private TextField Meno5;
+	private TextField txtField_name_05;
 	@FXML
-	private TextField Priezvisko5;
+	private TextField txtField_surname_05;
 
 	private DocumentBuilderFactory docFactory = null;
 	private DocumentBuilder docBuilder = null;
+	private FileChooser fileChooser = null;
 
 	private ArrayList<TextField> listOfNameFields = null;
 	private ArrayList<TextField> listOfSurnameFields = null;
@@ -105,20 +104,20 @@ public class MainItemsController {
 
 	@FXML
 	private void initialize() {
-		pohlavieBox1.setItems(pohlavieList);
-		ligistaBox1.setItems(ligistaList);
+		comboBox_gender_01.setItems(pohlavieList);
+		comboBox_leaguest_01.setItems(ligistaList);
 
-		pohlavieBox2.setItems(pohlavieList);
-		ligistaBox2.setItems(ligistaList);
+		comboBox_gender_02.setItems(pohlavieList);
+		comboBox_leaguest_02.setItems(ligistaList);
 
-		pohlavieBox3.setItems(pohlavieList);
-		ligistaBox3.setItems(ligistaList);
+		comboBox_gender_03.setItems(pohlavieList);
+		comboBox_leaguest_03.setItems(ligistaList);
 
-		pohlavieBox4.setItems(pohlavieList);
-		ligistaBox4.setItems(ligistaList);
+		comboBox_gender_04.setItems(pohlavieList);
+		comboBox_leaguest_04.setItems(ligistaList);
 
-		pohlavieBox5.setItems(pohlavieList);
-		ligistaBox5.setItems(ligistaList);
+		comboBox_gender_05.setItems(pohlavieList);
+		comboBox_leaguest_05.setItems(ligistaList);
 
 		initializeVariables();
 	}
@@ -127,47 +126,49 @@ public class MainItemsController {
 		try {
 			docFactory = DocumentBuilderFactory.newInstance();
 			docBuilder = docFactory.newDocumentBuilder();
+			fileChooser = new FileChooser();
+			fileChooser.setInitialDirectory(new File(System.getProperty("user.home")));
 
 			listOfNameFields = new ArrayList<TextField>();
 			listOfSurnameFields = new ArrayList<TextField>();
 			listOfGenderBoxes = new ArrayList<ComboBox<String>>();
 			listOfLeaguestBoxes = new ArrayList<ComboBox<String>>();
 
-			listOfNameFields.add(Meno1);
-			listOfNameFields.add(Meno2);
-			listOfNameFields.add(Meno3);
-			listOfNameFields.add(Meno4);
-			listOfNameFields.add(Meno5);
+			listOfNameFields.add(txtField_name_01);
+			listOfNameFields.add(txtField_name_02);
+			listOfNameFields.add(txtField_name_03);
+			listOfNameFields.add(txtField_name_04);
+			listOfNameFields.add(txtField_name_05);
 
-			listOfSurnameFields.add(Priezvisko1);
-			listOfSurnameFields.add(Priezvisko2);
-			listOfSurnameFields.add(Priezvisko3);
-			listOfSurnameFields.add(Priezvisko4);
-			listOfSurnameFields.add(Priezvisko5);
+			listOfSurnameFields.add(txtField_surname_01);
+			listOfSurnameFields.add(txtField_surname_02);
+			listOfSurnameFields.add(txtField_surname_03);
+			listOfSurnameFields.add(txtField_surname_04);
+			listOfSurnameFields.add(txtField_surname_05);
 
-			listOfGenderBoxes.add(pohlavieBox1);
-			listOfGenderBoxes.add(pohlavieBox2);
-			listOfGenderBoxes.add(pohlavieBox3);
-			listOfGenderBoxes.add(pohlavieBox4);
-			listOfGenderBoxes.add(pohlavieBox5);
+			listOfGenderBoxes.add(comboBox_gender_01);
+			listOfGenderBoxes.add(comboBox_gender_02);
+			listOfGenderBoxes.add(comboBox_gender_03);
+			listOfGenderBoxes.add(comboBox_gender_04);
+			listOfGenderBoxes.add(comboBox_gender_05);
 
-			listOfLeaguestBoxes.add(ligistaBox1);
-			listOfLeaguestBoxes.add(ligistaBox2);
-			listOfLeaguestBoxes.add(ligistaBox3);
-			listOfLeaguestBoxes.add(ligistaBox4);
-			listOfLeaguestBoxes.add(ligistaBox5);
+			listOfLeaguestBoxes.add(comboBox_leaguest_01);
+			listOfLeaguestBoxes.add(comboBox_leaguest_02);
+			listOfLeaguestBoxes.add(comboBox_leaguest_03);
+			listOfLeaguestBoxes.add(comboBox_leaguest_04);
+			listOfLeaguestBoxes.add(comboBox_leaguest_05);
 
 		} catch (Exception e) {
 			setError("Error!", e.getMessage(), e.getStackTrace().toString());
 		}
 	}
-	
+
 	private void clearVariables() {
-		this.nazovTimu.clear();
-		this.telCislo.clear();
-		this.email.clear();
-		
-		for(int i = 0; i < listOfNameFields.size(); i++ ) {
+		this.txtField_teamName.clear();
+		this.txtField_phoneNum.clear();
+		this.txtField_email.clear();
+
+		for (int i = 0; i < listOfNameFields.size(); i++) {
 			this.listOfNameFields.get(i).clear();
 			this.listOfGenderBoxes.get(i).valueProperty().set(null);
 			this.listOfSurnameFields.get(i).clear();
@@ -215,7 +216,6 @@ public class MainItemsController {
 				Element player = doc.createElement("player");
 				Element firstname = doc.createElement("firstname");
 				Element lastname = doc.createElement("lastname");
-//				Element gender = doc.createElement("gender");
 				Element leaguest = doc.createElement("leaguest");
 
 				firstname.setTextContent(listOfNameFields.get(i).getText());
@@ -230,16 +230,11 @@ public class MainItemsController {
 					return null;
 				}
 
-/*				if (listOfGenderBoxes.get(i).getValue().equals("Muž"))
-					gender.setTextContent("m");
-				else if (listOfGenderBoxes.get(i).getValue().equals("Žena"))
-					gender.setTextContent("f");
-*/
 				if (listOfGenderBoxes.get(i).getValue().equals("Muž"))
 					player.setAttribute("gender", "m");
 				else if (listOfGenderBoxes.get(i).getValue().equals("Žena"))
 					player.setAttribute("gender", "f");
-				
+
 				if (listOfLeaguestBoxes.get(i).getValue().equals("Áno"))
 					leaguest.setTextContent("true");
 				else if (listOfLeaguestBoxes.get(i).getValue().equals("Nie"))
@@ -247,7 +242,6 @@ public class MainItemsController {
 
 				player.appendChild(firstname);
 				player.appendChild(lastname);
-//				player.appendChild(gender);
 				player.appendChild(leaguest);
 
 				listOfPlayers.add(player);
@@ -285,7 +279,7 @@ public class MainItemsController {
 
 		alert.showAndWait();
 	}
-
+	@SuppressWarnings("unused")
 	private void setWarning(String title, String headerText, String contentText) {
 		Alert alert = new Alert(AlertType.WARNING);
 		alert.setTitle(title);
@@ -294,7 +288,6 @@ public class MainItemsController {
 
 		alert.showAndWait();
 	}
-
 	private void setError(String title, String headerText, String contentText) {
 		Alert alert = new Alert(AlertType.ERROR);
 		alert.setTitle(title);
@@ -306,13 +299,11 @@ public class MainItemsController {
 
 	@FXML
 	protected void ValidateXML(ActionEvent event) {
-		
 		File xsdfile = null;
 		File xmlfile = null;
-		FileChooser fileChooser = new FileChooser();
 
 		fileChooser.setTitle("Please choose an XML file.");
-		fileChooser.setInitialDirectory(new File(System.getProperty("user.home")));
+		fileChooser.getExtensionFilters().clear();
 		fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML", "*.xml"));
 
 		xmlfile = fileChooser.showOpenDialog(null);
@@ -320,9 +311,12 @@ public class MainItemsController {
 			fileChooser.setTitle("Please choose an XSD file.");
 			fileChooser.getExtensionFilters().clear();
 			fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XSD", "*.xsd"));
+			fileChooser.setInitialDirectory(xmlfile.getParentFile());
 
 			xsdfile = fileChooser.showOpenDialog(null);
 			if (xsdfile != null) {
+				fileChooser.setInitialDirectory(xsdfile.getParentFile());
+				
 				Source xmlFile = new StreamSource(xmlfile);
 				SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
 				try {
@@ -352,21 +346,21 @@ public class MainItemsController {
 			doc.appendChild(root);
 
 			Element teamName = doc.createElement("team_name");
-			teamName.setTextContent(this.nazovTimu.getText());
+			teamName.setTextContent(this.txtField_teamName.getText());
 			Element email = doc.createElement("email");
-			email.setTextContent(this.email.getText());
+			email.setTextContent(this.txtField_email.getText());
 			Element phoneNum = doc.createElement("phone_number");
-			phoneNum.setTextContent(this.telCislo.getText());
+			phoneNum.setTextContent(this.txtField_phoneNum.getText());
 
-			if (this.nazovTimu.getText().equals("")) {
+			if (this.txtField_teamName.getText().equals("")) {
 				setError("Error!", "Missing team name!", null);
 				return;
 			}
-			if (!checkEmail(this.email.getText())) {
+			if (!checkEmail(this.txtField_email.getText())) {
 				setError("Error!", "Wrong e-mail format!", null);
 				return;
 			}
-			if (!checkNum(this.telCislo.getText())) {
+			if (!checkNum(this.txtField_phoneNum.getText())) {
 				setError("Error!", "Wrong format of phone number!", "Allowed are 0900000000 or +421900000000!");
 				return;
 			}
@@ -384,15 +378,17 @@ public class MainItemsController {
 			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 			DOMSource xmlSource = new DOMSource(doc);
 
-			FileChooser chooser = new FileChooser();
-			chooser.setTitle("Save file as");
-			chooser.setInitialDirectory(new File(System.getProperty("user.home")));
-			chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML", "*.xml"));
+			fileChooser.setTitle("Save file as");
+			fileChooser.getExtensionFilters().clear();
+			fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML", "*.xml"));
 
-			File file = chooser.showSaveDialog(null);
+			File file = fileChooser.showSaveDialog(null);
 			if (file != null) {
+				fileChooser.setInitialDirectory(file.getParentFile());
+				
 				StreamResult stream = new StreamResult(file);
 				transformer.transform(xmlSource, stream);
+				setInformation("Success!", "XML file was successfully written.", null);
 				clearVariables();
 			} else
 				setError("Error!", "No file was selected for creation!", null);
@@ -404,85 +400,52 @@ public class MainItemsController {
 
 	@FXML
 	protected void VisualizeXML(ActionEvent event) {
-
-		
 		File xslfile = null;
 		File xmlfile = null;
-		FileChooser fileChooser = new FileChooser();
 
 		fileChooser.setTitle("Please choose an XML file.");
-		fileChooser.setInitialDirectory(new File(System.getProperty("user.home")));
+		fileChooser.getExtensionFilters().clear();
 		fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML", "*.xml"));
-
-		xmlfile = fileChooser.showOpenDialog(null);
-		if (xmlfile != null) {
-			fileChooser.setTitle("Please choose an XSL file.");
-			fileChooser.getExtensionFilters().clear();
-			fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XSLT", "*.xslt"));
-
-			xslfile = fileChooser.showOpenDialog(null);
-			if (xslfile != null) {
-				
-				
-				
-				Source xml = new StreamSource(xmlfile);
-				Source xsl = new StreamSource(xslfile);
-				
-				StringWriter sw = new StringWriter();
-
-				try {
-
-					
-					FileChooser chooser = new FileChooser();
-					chooser.setTitle("Save file as");
-					chooser.setInitialDirectory(new File(System.getProperty("user.home")));
-					chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("HTML", "*.html"));
-
-					File file = chooser.showSaveDialog(null);
-					if (file != null) {
-						StreamResult stream = new StreamResult(file);
-						FileWriter fw = new FileWriter(file);
-						
-						TransformerFactory tFactory = TransformerFactory.newInstance();
-						Transformer trasform = tFactory.newTransformer(xsl);
-						trasform.transform(xml, new StreamResult(sw));
-						fw.write(sw.toString());
-						fw.close();
-
-						
-					//	transformer.transform(xmlSource, stream);
-					} else
-						setError("Error!", "No file was selected for creation!", null);
-
-					
-
-				} catch (IOException | TransformerConfigurationException e) {
-					e.printStackTrace();
-				} catch (TransformerFactoryConfigurationError e) {
-					e.printStackTrace();
-				} catch (TransformerException e) {
-					e.printStackTrace();
-				}
-
-				/*
-				SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-				try {
-					Schema schema = schemaFactory.newSchema(xsdfile);
-					Validator validator = schema.newValidator();
-					validator.validate(xmlFile);
-					setInformation("Success!", xmlfile.getName() + " is valid.", null);
-				} catch (SAXException e) {
-					setError("Error!", xmlfile.getName() + " is invalid.",
-							"Reason: Line " + ((SAXParseException) e).getLineNumber() + ". " + e.getMessage());
-				} catch (IOException e) {
-					this.setError("Error!", e.getMessage(), e.getStackTrace().toString());
-				}*/
-				
-			} else
-				setError("Error!", "No file was selected! Please choose an XSL file.", null);
-		} else
-			setError("Error!", "No file was selected! Please choose an XML file.", null);
 		
+		try {
+			xmlfile = fileChooser.showOpenDialog(null);
+			if (xmlfile != null) {
+				fileChooser.setTitle("Please choose an XSL file.");
+				fileChooser.setInitialDirectory(xmlfile.getParentFile());
+				fileChooser.getExtensionFilters().clear();
+				fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XSLT", "*.xslt"));
+
+				xslfile = fileChooser.showOpenDialog(null);
+				if (xslfile != null) {
+					Source xml = new StreamSource(xmlfile);
+					Source xsl = new StreamSource(xslfile);
+
+					fileChooser.setTitle("Save file as");
+					fileChooser.setInitialDirectory(xslfile.getParentFile());
+					fileChooser.getExtensionFilters().clear();
+					fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("HTML", "*.html"));
+
+					File file = fileChooser.showSaveDialog(null);
+					if (file != null) {
+						BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, false), StandardCharsets.UTF_8));
+						StringWriter sw = new StringWriter();
+
+						TransformerFactory transFactory = TransformerFactory.newInstance();
+						Transformer transformer = transFactory.newTransformer(xsl);
+						
+						transformer.transform(xml, new StreamResult(sw));
+						
+						bw.write(sw.toString());
+						bw.close();
+					} 
+					else setError("Error!", "No file was selected for creation!", null);
+				} 
+				else setError("Error!", "No file was selected! Please choose an XSL file.", null);
+			}
+			else setError("Error!", "No file was selected! Please choose an XML file.", null);
+		} catch (Exception ex) {
+			setError("Error!", ex.getMessage(), ex.getStackTrace().toString());
+		}
 	}
 }
 

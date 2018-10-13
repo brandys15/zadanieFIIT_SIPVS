@@ -31,9 +31,9 @@
          </font>
       </Label>
       
-      <TextField fx:id="nazovTimu" layoutX="246.0" layoutY="120.0" prefHeight="39.0" prefWidth="244.0" /> <!-- onKeyReleased="#checkName"  -->
-      <TextField fx:id="email" layoutX="246.0" layoutY="163.0" prefHeight="39.0" prefWidth="244.0" /> <!-- onKeyReleased="#checkEmail"  -->
-      <TextField fx:id="telCislo" layoutX="247.0" layoutY="208.0" prefHeight="39.0" prefWidth="150.0" />
+      <TextField fx:id="txtField_teamName" layoutX="246.0" layoutY="120.0" prefHeight="39.0" prefWidth="244.0" /> <!-- onKeyReleased="#checkName"  -->
+      <TextField fx:id="txtField_email" layoutX="246.0" layoutY="163.0" prefHeight="39.0" prefWidth="244.0" /> <!-- onKeyReleased="#checkEmail"  -->
+      <TextField fx:id="txtField_phoneNum" layoutX="247.0" layoutY="208.0" prefHeight="39.0" prefWidth="150.0" />
       
       <!-- Labels for player registration -->
       <Label layoutX="25.0" layoutY="265.0" prefHeight="0.0" prefWidth="83.0" text="Meno">
@@ -58,31 +58,30 @@
       </Label>
       
       <!-- Components for each player -->
-      <TextField fx:id="Meno1" layoutX="25.0" layoutY="300.0" prefHeight="39.0" prefWidth="83.0" />
-      <TextField fx:id="Priezvisko1" layoutX="125.0" layoutY="300.0" prefHeight="39.0" prefWidth="123.0" />
-      <ComboBox fx:id="pohlavieBox1" layoutX="267.0" layoutY="302.0" prefHeight="39.0" prefWidth="92.0" />
-      <ComboBox fx:id="ligistaBox1" layoutX="376.0" layoutY="302.0" prefHeight="39.0" prefWidth="92.0" />
+      <TextField fx:id="txtField_name_01" layoutX="25.0" layoutY="300.0" prefHeight="39.0" prefWidth="83.0" />
+      <TextField fx:id="txtField_surname_01" layoutX="125.0" layoutY="300.0" prefHeight="39.0" prefWidth="123.0" />
+      <ComboBox fx:id="comboBox_gender_01" layoutX="267.0" layoutY="302.0" prefHeight="39.0" prefWidth="92.0" />
+      <ComboBox fx:id="comboBox_leaguest_01" layoutX="376.0" layoutY="302.0" prefHeight="39.0" prefWidth="92.0" />
       
+      <TextField fx:id="txtField_name_02" layoutX="25.0" layoutY="346.0" prefHeight="39.0" prefWidth="83.0" />
+      <TextField fx:id="txtField_surname_02" layoutX="125.0" layoutY="346.0" prefHeight="39.0" prefWidth="123.0" />
+      <ComboBox fx:id="comboBox_gender_02" layoutX="267.0" layoutY="348.0" prefHeight="39.0" prefWidth="92.0" />
+      <ComboBox fx:id="comboBox_leaguest_02" layoutX="376.0" layoutY="348.0" prefHeight="39.0" prefWidth="92.0" />
       
-      <TextField fx:id="Meno2" layoutX="25.0" layoutY="346.0" prefHeight="39.0" prefWidth="83.0" />
-      <TextField fx:id="Priezvisko2" layoutX="125.0" layoutY="346.0" prefHeight="39.0" prefWidth="123.0" />
-      <ComboBox fx:id="pohlavieBox2" layoutX="267.0" layoutY="348.0" prefHeight="39.0" prefWidth="92.0" />
-      <ComboBox fx:id="ligistaBox2" layoutX="376.0" layoutY="348.0" prefHeight="39.0" prefWidth="92.0" />
+      <TextField fx:id="txtField_name_03" layoutX="25.0" layoutY="392.0" prefHeight="39.0" prefWidth="83.0" />
+      <TextField fx:id="txtField_surname_03" layoutX="125.0" layoutY="392.0" prefHeight="39.0" prefWidth="123.0" />
+      <ComboBox fx:id="comboBox_gender_03" layoutX="267.0" layoutY="394.0" prefHeight="39.0" prefWidth="92.0" />
+      <ComboBox fx:id="comboBox_leaguest_03" layoutX="376.0" layoutY="394.0" prefHeight="39.0" prefWidth="92.0" />
       
-      <TextField fx:id="Meno3" layoutX="25.0" layoutY="392.0" prefHeight="39.0" prefWidth="83.0" />
-      <TextField fx:id="Priezvisko3" layoutX="125.0" layoutY="392.0" prefHeight="39.0" prefWidth="123.0" />
-      <ComboBox fx:id="pohlavieBox3" layoutX="267.0" layoutY="394.0" prefHeight="39.0" prefWidth="92.0" />
-      <ComboBox fx:id="ligistaBox3" layoutX="376.0" layoutY="394.0" prefHeight="39.0" prefWidth="92.0" />
+      <TextField fx:id="txtField_name_04" layoutX="25.0" layoutY="441.0" prefHeight="39.0" prefWidth="83.0" />
+      <TextField fx:id="txtField_surname_04" layoutX="125.0" layoutY="441.0" prefHeight="39.0" prefWidth="123.0" />
+      <ComboBox fx:id="comboBox_gender_04" layoutX="267.0" layoutY="443.0" prefHeight="39.0" prefWidth="92.0" />
+      <ComboBox fx:id="comboBox_leaguest_04" layoutX="376.0" layoutY="443.0" prefHeight="39.0" prefWidth="92.0" />
       
-      <TextField fx:id="Meno4" layoutX="25.0" layoutY="441.0" prefHeight="39.0" prefWidth="83.0" />
-      <TextField fx:id="Priezvisko4" layoutX="125.0" layoutY="441.0" prefHeight="39.0" prefWidth="123.0" />
-      <ComboBox fx:id="pohlavieBox4" layoutX="267.0" layoutY="443.0" prefHeight="39.0" prefWidth="92.0" />
-      <ComboBox fx:id="ligistaBox4" layoutX="376.0" layoutY="443.0" prefHeight="39.0" prefWidth="92.0" />
-      
-      <TextField fx:id="Meno5" layoutX="25.0" layoutY="487.0" prefHeight="39.0" prefWidth="83.0" />
-      <TextField fx:id="Priezvisko5" layoutX="125.0" layoutY="487.0" prefHeight="39.0" prefWidth="123.0" />
-      <ComboBox fx:id="pohlavieBox5" layoutX="267.0" layoutY="489.0" prefHeight="39.0" prefWidth="92.0" />
-      <ComboBox fx:id="ligistaBox5" layoutX="376.0" layoutY="489.0" prefHeight="39.0" prefWidth="92.0" />
+      <TextField fx:id="txtField_name_05" layoutX="25.0" layoutY="487.0" prefHeight="39.0" prefWidth="83.0" />
+      <TextField fx:id="txtField_surname_05" layoutX="125.0" layoutY="487.0" prefHeight="39.0" prefWidth="123.0" />
+      <ComboBox fx:id="comboBox_gender_05" layoutX="267.0" layoutY="489.0" prefHeight="39.0" prefWidth="92.0" />
+      <ComboBox fx:id="comboBox_leaguest_05" layoutX="376.0" layoutY="489.0" prefHeight="39.0" prefWidth="92.0" />
       
       <!-- Buttons on the bottom part of the code -->
       <Button layoutX="8.0" layoutY="578.0" mnemonicParsing="false" prefHeight="48.0" prefWidth="132.0" text="Ulož XML" onAction="#GenerateXML"/>
