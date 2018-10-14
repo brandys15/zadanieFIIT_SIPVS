@@ -271,6 +271,59 @@ public class MainItemsController {
 		return playersElem;
 	}
 
+	private ArrayList<File> getAllFiles() {
+		ArrayList<File> list = new ArrayList<File>();
+		File xslfile = null;
+		File xsdfile = null;
+		File xmlfile = null;
+		
+		try {
+			fileChooser.setTitle("Please choose an XML file.");
+			fileChooser.getExtensionFilters().clear();
+			fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML", "*.xml"));
+			
+			xmlfile = fileChooser.showOpenDialog(null);
+			if (xmlfile == null) {
+				setError("Error!", "No XML file was chosen.", null);
+				return null;
+			}
+			
+			fileChooser.setInitialDirectory(xmlfile.getParentFile());
+			fileChooser.setTitle("Please choose an XSD file.");
+			fileChooser.getExtensionFilters().clear();
+			fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XSD", "*.xsd"));
+			
+			xsdfile = fileChooser.showOpenDialog(null);
+			if (xsdfile == null) {
+				setError("Error!", "No XSD file was chosen.", null);
+				return null;
+			}
+			
+			fileChooser.setInitialDirectory(xsdfile.getParentFile());
+			fileChooser.setTitle("Please choose an XSL file.");
+			fileChooser.getExtensionFilters().clear();
+			fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XSL", "*.xslt"));
+			
+			xslfile = fileChooser.showOpenDialog(null);
+			if (xslfile == null) {
+				setError("Error!", "No XSL file was chosen.", null);
+				return null;
+			}
+			
+			fileChooser.setInitialDirectory(xslfile.getParentFile());
+			
+			list.add(xmlfile);
+			list.add(xslfile);
+			list.add(xsdfile);
+			
+			return list;
+		}
+		catch(Exception ex) {
+			setError("Error!", ex.getMessage(), ex.getStackTrace().toString());
+			return null;
+		}
+	}
+	
 	private void setInformation(String title, String headerText, String contentText) {
 		Alert alert = new Alert(AlertType.INFORMATION);
 		alert.setTitle(title);
@@ -437,6 +490,8 @@ public class MainItemsController {
 						
 						bw.write(sw.toString());
 						bw.close();
+						
+						setInformation("Success!", "HTML file successfully written.", null);
 					} 
 					else setError("Error!", "No file was selected for creation!", null);
 				} 
@@ -444,6 +499,25 @@ public class MainItemsController {
 			}
 			else setError("Error!", "No file was selected! Please choose an XML file.", null);
 		} catch (Exception ex) {
+			setError("Error!", ex.getMessage(), ex.getStackTrace().toString());
+		}
+	}
+	
+	@FXML
+	protected void Sign(ActionEvent event) {
+		try {
+			ArrayList<File> listOfFiles = getAllFiles();
+			
+			if(listOfFiles == null)
+				return;
+			
+			File xslfile = listOfFiles.get(0);
+			File xsdfile = listOfFiles.get(1);
+			File xmlfile = listOfFiles.get(2);
+			
+			//TO IMPLEMENT THE REST
+		}
+		catch(Exception ex) {
 			setError("Error!", ex.getMessage(), ex.getStackTrace().toString());
 		}
 	}
