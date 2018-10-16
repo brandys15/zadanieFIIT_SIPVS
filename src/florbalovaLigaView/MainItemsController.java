@@ -37,6 +37,9 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
 import javafx.stage.FileChooser;
+import sk.ditec.zep.dsigner.xades.XadesSig;
+import sk.ditec.zep.dsigner.xades.plugin.DataObject;
+import sk.ditec.zep.dsigner.xades.plugins.xmlplugin.XmlPlugin;
 
 public class MainItemsController {
 
@@ -507,7 +510,6 @@ public class MainItemsController {
 	protected void Sign(ActionEvent event) {
 		try {
 			ArrayList<File> listOfFiles = getAllFiles();
-			
 			if(listOfFiles == null)
 				return;
 			
@@ -515,7 +517,50 @@ public class MainItemsController {
 			File xsdfile = listOfFiles.get(1);
 			File xmlfile = listOfFiles.get(2);
 			
-			//TO IMPLEMENT THE REST
+			XadesSig dSigner = new XadesSig();
+			dSigner.installLookAndFeel();
+			dSigner.installSwingLocalization();
+			dSigner.reset();
+			
+			XmlPlugin xmlPlugin = new XmlPlugin();
+			DataObject xmlObject = xmlPlugin.createObject2(
+					"xml_sig",							//object ID
+					"UFL team",							//object description
+					xmlfile.getAbsolutePath(),			//XML source
+					xsdfile.getAbsolutePath(),			//XSD source
+					namespaceUri,						//Namespace URI
+					xsdReference,						//XSD reference
+					xslfile.getAbsolutePath(),			//XSL source
+					xslReference);						//XSL reference
+			
+			if(xmlObject == null) {
+				setError("Error!", "Something went wrong.", xmlPlugin.getErrorMessage());
+				return;
+			}
+			
+			int checker = dSigner.addObject(xmlObject);
+			if(checker != 0) {
+				setError("Error!", "Something went wrong.", dSigner.getErrorMessage());
+				return;
+			}
+			
+			checker = dSigner.sign20(
+					"ufl_sig",					//signature ID
+					"http://www.w3.org/2001/04/xmlenc#sha256",			//identifikátor algoritmu pre výpoèet digitálnych odtlaèkov v rámci vytváraného elektronického podpisu; nepovinný parameter; ak je null alebo prázdny, použije sa algoritmus špecifikovaný v rámci konfigurácie aplikácie
+					signaturePolicyIdentifier,	//jednoznaèný identifikátor podpisovej politiky použitej pri vytváraní elektronického podpisu
+					dataEnvelopeId,				//jednoznaèné XML Id elementu xzep:DataEnvelope
+					dataEnvelopeURI,			//URI atribút elementu xzep:DataEnvelope
+					dataEnvelopeDescr);			//Description atribút elementu xzep:DataEnvelope
+			
+			if(checker != 0) {
+				setError("Error!", "Something went wrong.", dSigner.getErrorMessage());
+				return;
+			}
+			
+			//OCAKAVANE TO DO - preverenie, ake rozne verzie dokumentov vytvara (cez getSignedXml - rozne verzie)
+			//(pravdepodobne) ulozenie do subora cez BufferedOutputStream alebo daco take
+			
+			setInformation("Success!", "Document successfully created.", dSigner.getSignedXmlWithEnvelope());
 		}
 		catch(Exception ex) {
 			setError("Error!", ex.getMessage(), ex.getStackTrace().toString());
