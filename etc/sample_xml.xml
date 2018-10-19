@@ -1,23 +1,23 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<ufl_team>
-<team_name>Nifflers</team_name>
-<email>tomas.bako@gmail.com</email>
-<phone_number>0949000000</phone_number>
-<players>
-<player gender="m">
-<firstname>Tomas</firstname>
-<lastname>Bako</lastname>
-<leaguest>false</leaguest>
-</player>
-<player gender="m">
-<firstname>Peter</firstname>
-<lastname>Bako</lastname>
-<leaguest>false</leaguest>
-</player>
-<player gender="m">
-<firstname>Michal</firstname>
-<lastname>Sevcik</lastname>
-<leaguest>true</leaguest>
-</player>
-</players>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ufl_team xmlns="http://www.w3.org/2001/XMLSchema-instance">
+  <team_name>Black Eagles</team_name>
+  <email>tomas.bako.94@gmail.com</email>
+  <phone_number>0940111222</phone_number>
+  <players>
+    <player gender="m">
+      <firstname>Tomas</firstname>
+      <lastname>Bako</lastname>
+      <leaguest>false</leaguest>
+    </player>
+    <player gender="m">
+      <firstname>Peter</firstname>
+      <lastname>Bako</lastname>
+      <leaguest>false</leaguest>
+    </player>
+    <player gender="m">
+      <firstname>Juraj</firstname>
+      <lastname>Bystricky</lastname>
+      <leaguest>true</leaguest>
+    </player>
+  </players>
 </ufl_team>

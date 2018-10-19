@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -35,11 +36,12 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Priority;
 import javafx.stage.FileChooser;
-import sk.ditec.zep.dsigner.xades.XadesSig;
-import sk.ditec.zep.dsigner.xades.plugin.DataObject;
-import sk.ditec.zep.dsigner.xades.plugins.xmlplugin.XmlPlugin;
 
 public class MainItemsController {
 
@@ -162,7 +164,7 @@ public class MainItemsController {
 			listOfLeaguestBoxes.add(comboBox_leaguest_05);
 
 		} catch (Exception e) {
-			setError("Error!", e.getMessage(), e.getStackTrace().toString());
+			setError("Error!", e.getMessage(), getStackTrace(e));
 		}
 	}
 
@@ -322,7 +324,7 @@ public class MainItemsController {
 			return list;
 		}
 		catch(Exception ex) {
-			setError("Error!", ex.getMessage(), ex.getStackTrace().toString());
+			setError("Error!", ex.getMessage(), getStackTrace(ex));
 			return null;
 		}
 	}
@@ -346,13 +348,38 @@ public class MainItemsController {
 	}
 	private void setError(String title, String headerText, String contentText) {
 		Alert alert = new Alert(AlertType.ERROR);
+		
 		alert.setTitle(title);
 		alert.setHeaderText(headerText);
-		alert.setContentText(contentText);
+		
+		Label label = new Label("The exception stacktrace is:");
+		TextArea textArea = new TextArea(contentText);
+		textArea.setEditable(false);
+		textArea.setWrapText(true);
+
+		textArea.setMaxWidth(Double.MAX_VALUE);
+		textArea.setMaxHeight(Double.MAX_VALUE);
+		GridPane.setVgrow(textArea, Priority.ALWAYS);
+		GridPane.setHgrow(textArea, Priority.ALWAYS);
+
+		GridPane expContent = new GridPane();
+		expContent.setMaxWidth(Double.MAX_VALUE);
+		expContent.add(label, 0, 0);
+		expContent.add(textArea, 0, 1);
+		
+		alert.getDialogPane().setExpandableContent(expContent);
 
 		alert.showAndWait();
 	}
-
+	private String getStackTrace(Exception ex) {
+		StringWriter sw = new StringWriter();
+		PrintWriter pw = new PrintWriter(sw);
+		
+		ex.printStackTrace(pw);
+		
+		return sw.toString();
+	}
+	
 	@FXML
 	protected void ValidateXML(ActionEvent event) {
 		File xsdfile = null;
@@ -384,7 +411,7 @@ public class MainItemsController {
 					setError("Error!", xmlfile.getName() + " is invalid.",
 							"Reason: Line " + ((SAXParseException) e).getLineNumber() + ". " + e.getMessage());
 				} catch (IOException e) {
-					this.setError("Error!", e.getMessage(), e.getStackTrace().toString());
+					this.setError("Error!", e.getMessage(), getStackTrace(e));
 				}
 			} else
 				setError("Error!", "No file was selected! Please choose an XSD file.", null);
@@ -394,20 +421,12 @@ public class MainItemsController {
 
 	@FXML
 	protected void GenerateXML(ActionEvent event) {
-		Document doc = null;
 		try {
-			doc = docBuilder.newDocument();
-
-			Element root = doc.createElement("ufl_team");
+			Document doc = docBuilder.newDocument();			
+			Element root = doc.createElementNS("http://www.w3.org/2001/XMLSchema-instance", "ufl_team");
+			
 			doc.appendChild(root);
-
-			Element teamName = doc.createElement("team_name");
-			teamName.setTextContent(this.txtField_teamName.getText());
-			Element email = doc.createElement("email");
-			email.setTextContent(this.txtField_email.getText());
-			Element phoneNum = doc.createElement("phone_number");
-			phoneNum.setTextContent(this.txtField_phoneNum.getText());
-
+						
 			if (this.txtField_teamName.getText().equals("")) {
 				setError("Error!", "Missing team name!", null);
 				return;
@@ -420,7 +439,16 @@ public class MainItemsController {
 				setError("Error!", "Wrong format of phone number!", "Allowed are 0900000000 or +421900000000!");
 				return;
 			}
-
+			
+			Element teamName = doc.createElement("team_name");
+			teamName.setTextContent(this.txtField_teamName.getText());
+			
+			Element email = doc.createElement("email");
+			email.setTextContent(this.txtField_email.getText());
+			
+			Element phoneNum = doc.createElement("phone_number");
+			phoneNum.setTextContent(this.txtField_phoneNum.getText());
+			
 			Element players = getPlayersElem(doc);
 			if (players == null)
 				return;
@@ -429,9 +457,12 @@ public class MainItemsController {
 			root.appendChild(email);
 			root.appendChild(phoneNum);
 			root.appendChild(players);
-
+			
 			Transformer transformer = TransformerFactory.newInstance().newTransformer();
 			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+			transformer.setOutputProperty(OutputKeys.STANDALONE, "yes");
+			transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+			
 			DOMSource xmlSource = new DOMSource(doc);
 
 			fileChooser.setTitle("Save file as");
@@ -450,7 +481,7 @@ public class MainItemsController {
 				setError("Error!", "No file was selected for creation!", null);
 
 		} catch (Exception e) {
-			setError("Error!", e.getMessage(), e.getStackTrace().toString());
+			setError("Error!", e.getMessage(), getStackTrace(e));
 		}
 	}
 
@@ -502,13 +533,13 @@ public class MainItemsController {
 			}
 			else setError("Error!", "No file was selected! Please choose an XML file.", null);
 		} catch (Exception ex) {
-			setError("Error!", ex.getMessage(), ex.getStackTrace().toString());
+			setError("Error!", ex.getMessage(), getStackTrace(ex));
 		}
 	}
 	
 	@FXML
 	protected void Sign(ActionEvent event) {
-		try {
+		/*try {
 			ArrayList<File> listOfFiles = getAllFiles();
 			if(listOfFiles == null)
 				return;
@@ -563,26 +594,16 @@ public class MainItemsController {
 			setInformation("Success!", "Document successfully created.", dSigner.getSignedXmlWithEnvelope());
 		}
 		catch(Exception ex) {
-			setError("Error!", ex.getMessage(), ex.getStackTrace().toString());
-		}
+			setError("Error!", ex.getMessage(), getStackTrace(ex));
+		}*/
 	}
 }
 
 /*
- * UNUSED
+ * UNUSED - SETTING XSL STYLESHEET TO XML (MAYBE NOT NECESSARY)
  * 
- * @FXML private void checkName() { nazovCheck =
- * this.checkString(this.nazovTimu.getText().toString());
- * 
- * if (nazovCheck == false) { this.setWarning("Pouzite nepovelene znaky",
- * "Skontroluj si nazov timu", "Napis nazov timu bez specialnych znakov");
- * return; }
- * 
- * }
- * 
- * @FXML private void checkEmail() { emailCheck =
- * this.checkEmail(this.email.getText().toString());
- * 
- * if (emailCheck == false) { this.setWarning("Email v zlom formate",
- * "Skontroluj si zadany email", "Napis email v spravnom formate"); return; } }
+			//doc.appendChild(root);
+			//ProcessingInstructionImpl pi = (ProcessingInstructionImpl) doc.createProcessingInstruction("xml-stylesheet", "type=\"text/xsl\" href=\"ToHtml.xslt\"");
+			//root = doc.getDocumentElement();
+			//doc.insertBefore((Node) pi, root);
  */
