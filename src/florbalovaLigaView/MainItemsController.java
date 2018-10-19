@@ -29,6 +29,7 @@ import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
+import florbalovaLiga.Utils;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -42,6 +43,9 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.stage.FileChooser;
+import sk.ditec.zep.dsigner.xades.XadesSig;
+import sk.ditec.zep.dsigner.xades.plugin.DataObject;
+import sk.ditec.zep.dsigner.xades.plugins.xmlplugin.XmlPlugin;
 
 public class MainItemsController {
 
@@ -540,7 +544,7 @@ public class MainItemsController {
 	
 	@FXML
 	protected void Sign(ActionEvent event) {
-		/*try {
+		try {
 			ArrayList<File> listOfFiles = getAllFiles();
 			if(listOfFiles == null)
 				return;
@@ -555,15 +559,16 @@ public class MainItemsController {
 			dSigner.reset();
 			
 			XmlPlugin xmlPlugin = new XmlPlugin();
-			DataObject xmlObject = xmlPlugin.createObject2(
-					"xml_sig",							//object ID
-					"UFL team",							//object description
-					xmlfile.getAbsolutePath(),			//XML source
-					xsdfile.getAbsolutePath(),			//XSD source
-					namespaceUri,						//Namespace URI
-					xsdReference,						//XSD reference
-					xslfile.getAbsolutePath(),			//XSL source
-					xslReference);						//XSL reference
+			
+			DataObject xmlObject = xmlPlugin.createObject(
+					"xml_sig",											//object ID
+					"UFL team",											//object description
+					Utils.readResource(xmlfile.getAbsolutePath()),		//XML source
+					Utils.readResource(xsdfile.getAbsolutePath()),		//XSD source
+					"http://www.w3.org/2001/XMLSchema-instance",		//Namespace URI
+					"https://www.w3.org/2001/XMLSchema",				//XSD reference
+					Utils.readResource(xslfile.getAbsolutePath()),							//XSL source
+					"http://www.w3.org/1999/XSL/Transform");			//XSL reference
 			
 			if(xmlObject == null) {
 				setError("Error!", "Something went wrong.", xmlPlugin.getErrorMessage());
@@ -579,10 +584,10 @@ public class MainItemsController {
 			checker = dSigner.sign20(
 					"ufl_sig",					//signature ID
 					"http://www.w3.org/2001/04/xmlenc#sha256",			//identifikátor algoritmu pre výpoèet digitálnych odtlaèkov v rámci vytváraného elektronického podpisu; nepovinný parameter; ak je null alebo prázdny, použije sa algoritmus špecifikovaný v rámci konfigurácie aplikácie
-					signaturePolicyIdentifier,	//jednoznaèný identifikátor podpisovej politiky použitej pri vytváraní elektronického podpisu
-					dataEnvelopeId,				//jednoznaèné XML Id elementu xzep:DataEnvelope
-					dataEnvelopeURI,			//URI atribút elementu xzep:DataEnvelope
-					dataEnvelopeDescr);			//Description atribút elementu xzep:DataEnvelope
+					"urn:oid:1.3.158.36061701.1.2.2",	//jednoznaèný identifikátor podpisovej politiky použitej pri vytváraní elektronického podpisu
+					"dataEnvelopeId",				//jednoznaèné XML Id elementu xzep:DataEnvelope
+					"dataEnvelopeURI",				//URI atribút elementu xzep:DataEnvelope
+					"dataEnvelopeDescr");			//Description atribút elementu xzep:DataEnvelope
 			
 			if(checker != 0) {
 				setError("Error!", "Something went wrong.", dSigner.getErrorMessage());
@@ -596,7 +601,7 @@ public class MainItemsController {
 		}
 		catch(Exception ex) {
 			setError("Error!", ex.getMessage(), getStackTrace(ex));
-		}*/
+		}
 	}
 }
 

@@ -1,6 +1,8 @@
 package florbalovaLiga;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -9,16 +11,11 @@ import org.apache.xml.security.exceptions.Base64DecodingException;
 import org.apache.xml.security.utils.Base64;
 
 public class Utils {
-	static public InputStream getResourceAsStream(String name) {
-		//String path = new File("resources", name).getPath();
-		String path = name;
-		InputStream is = Utils.class.getResourceAsStream(path);
+	static public InputStream getResourceAsStream(String name) throws FileNotFoundException {
+		File file = new File(name);
+		InputStream stream = new FileInputStream(file);
 		
-		if (is == null) {
-			throw new RuntimeException("Nepodarilo sa otvorit zdroj: " + path);
-		}
-		
-		return is;
+		return stream;
 	}
 
 	static public String readResource(String name) throws IOException {
