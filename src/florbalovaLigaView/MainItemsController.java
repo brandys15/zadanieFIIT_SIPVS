@@ -29,6 +29,8 @@ import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
+import com.sun.org.apache.bcel.internal.Constants;
+
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -423,8 +425,9 @@ public class MainItemsController {
 	protected void GenerateXML(ActionEvent event) {
 		try {
 			Document doc = docBuilder.newDocument();			
-			Element root = doc.createElementNS("http://www.w3.org/2001/XMLSchema-instance", "ufl_team");
-			
+			Element root = doc.createElement("ufl_team");
+			root.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
+			root.setAttribute("xsi:noNamespaceSchemaLocation", "UFL.xsd");
 			doc.appendChild(root);
 						
 			if (this.txtField_teamName.getText().equals("")) {
