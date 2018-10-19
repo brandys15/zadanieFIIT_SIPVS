@@ -549,9 +549,9 @@ public class MainItemsController {
 			if(listOfFiles == null)
 				return;
 			
-			File xslfile = listOfFiles.get(0);
-			File xsdfile = listOfFiles.get(1);
-			File xmlfile = listOfFiles.get(2);
+			File xmlfile = listOfFiles.get(0);
+			File xslfile = listOfFiles.get(1);
+			File xsdfile = listOfFiles.get(2);
 			
 			XadesSig dSigner = new XadesSig();
 			dSigner.installLookAndFeel();
@@ -565,9 +565,9 @@ public class MainItemsController {
 					"UFL team",											//object description
 					Utils.readResource(xmlfile.getAbsolutePath()),		//XML source
 					Utils.readResource(xsdfile.getAbsolutePath()),		//XSD source
-					"http://www.w3.org/2001/XMLSchema-instance",		//Namespace URI
+					"",		//Namespace URI
 					"https://www.w3.org/2001/XMLSchema",				//XSD reference
-					Utils.readResource(xslfile.getAbsolutePath()),							//XSL source
+					Utils.readResource(xslfile.getAbsolutePath()),		//XSL source
 					"http://www.w3.org/1999/XSL/Transform");			//XSL reference
 			
 			if(xmlObject == null) {
