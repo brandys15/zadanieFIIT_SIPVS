@@ -1,5 +1,6 @@
 package florbalovaLigaView;
 
+import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -594,10 +595,21 @@ public class MainItemsController {
 				return;
 			}
 			
-			//OCAKAVANE TO DO - preverenie, ake rozne verzie dokumentov vytvara (cez getSignedXml - rozne verzie)
-			//(pravdepodobne) ulozenie do subora cez BufferedOutputStream alebo daco take
-			
-			setInformation("Success!", "Document successfully created.", dSigner.getSignedXmlWithEnvelope());
+			fileChooser.setTitle("Save file as");
+			fileChooser.getExtensionFilters().clear();
+			fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML", "*.xml"));
+
+			File file = fileChooser.showSaveDialog(null);
+			if (file != null) {
+				BufferedOutputStream bufOut = new BufferedOutputStream(new FileOutputStream(file));
+				byte[] xmlBytes = dSigner.getSignedXmlWithEnvelope().getBytes("UTF-8");
+				
+				bufOut.write(xmlBytes);
+				bufOut.close();
+				
+				fileChooser.setInitialDirectory(file.getParentFile());
+			}
+			setInformation("Success!", "Document successfully created.", null);
 		}
 		catch(Exception ex) {
 			setError("Error!", ex.getMessage(), getStackTrace(ex));
