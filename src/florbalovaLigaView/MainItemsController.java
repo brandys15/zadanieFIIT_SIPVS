@@ -560,7 +560,6 @@ public class MainItemsController {
 			dSigner.reset();
 			
 			XmlPlugin xmlPlugin = new XmlPlugin();
-			
 			DataObject xmlObject = xmlPlugin.createObject(
 					"xml_sig",											//object ID
 					"UFL team",											//object description
@@ -591,7 +590,9 @@ public class MainItemsController {
 					"dataEnvelopeDescr");			//Description atribút elementu xzep:DataEnvelope
 			
 			if(checker != 0) {
-				setError("Error!", "Something went wrong.", dSigner.getErrorMessage());
+				if (checker == 1) {
+					setWarning("Warning", "The signing wasn't completed.", "The signing can't be done if it's cancelled!");
+				} else setError("Error!", "Something went wrong.", dSigner.getErrorMessage());
 				return;
 			}
 			
