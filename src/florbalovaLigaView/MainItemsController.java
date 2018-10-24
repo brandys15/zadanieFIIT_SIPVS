@@ -592,7 +592,42 @@ public class MainItemsController {
 			if(checker != 0) {
 				if (checker == 1) {
 					setWarning("Warning", "The signing wasn't completed.", "The signing can't be done if it's cancelled!");
-				} else setError("Error!", "Something went wrong.", dSigner.getErrorMessage());
+				}
+				if (checker == -1) {
+					setWarning("Warning", "The signing wasn't completed.", "Unkonwn algorythm of digital sign or unknown signing policy");
+				}
+				if (checker == -2) {
+					setWarning("Warning", "The signing wasn't completed.", "No object to sign!");
+				}
+				if (checker == -3) {
+					setWarning("Warning", "The signing wasn't completed.", "Parameter SignatureId is empty!");
+				
+				}
+				if (checker == -4) {
+					setWarning("Warning", "The signing wasn't completed.", "SignatureId is not relevant for regular expression of ID!");
+				}
+				if (checker == -5) {
+					setWarning("Warning", "The signing wasn't completed.", "Ambiguity of input XML ID");
+				}
+				if (checker == -6) {
+					setWarning("Warning", "The signing wasn't completed.", "DataEnvelopeId is not relevant for regular expression of ID!");
+				}
+				if (checker == -7) {
+					setWarning("Warning", "The signing wasn't completed.", "DataEnvelopeUri is not relevant for valid Uri!");
+				}
+				if (checker == -8) {
+					setWarning("Warning", "The signing wasn't completed.", "Ambiguity of DataEnvelopeId and SignatureId!");
+				}
+				if (checker == -11) {
+					setWarning("Warning", "The signing wasn't completed.", "Function sign is allready in progres!");
+				}
+				if (checker == -12) {
+					setWarning("Warning", "The signing wasn't completed.", "Can't find plugin of incoming data type!");
+				}
+				if (checker == -13) {
+					setWarning("Warning", "The signing wasn't completed.", "Before recalling of function sign() is necessary to call function reset()!");
+				}
+				else setError("Error!", "Something went wrong.", dSigner.getErrorMessage());
 				return;
 			}
 			
