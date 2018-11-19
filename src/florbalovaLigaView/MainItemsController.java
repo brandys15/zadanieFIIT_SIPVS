@@ -1,6 +1,6 @@
 package florbalovaLigaView;
 
-import java.io.BufferedOutputStream;
+import java.io.BufferedOutputStream; 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -29,6 +29,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
+
+import org.w3c.dom.Node;
 
 import florbalovaLiga.Callback;
 import florbalovaLiga.ResourceUtils;
@@ -714,18 +716,43 @@ public class MainItemsController {
 
 	@FXML
 	protected void AddTimestamp(ActionEvent event) {
-		File xmlfile = null;
+		File signedXml = null;
 		
 		fileChooser.setTitle("Please choose an XML file.");
 		fileChooser.getExtensionFilters().clear();
 		fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML", "*.xml"));
 		
-		xmlfile = fileChooser.showOpenDialog(null);
-		if (xmlfile == null) {
+		
+		signedXml = fileChooser.showOpenDialog(null);
+		
+		if (signedXml == null) {
 			setError("Error!", "No XML file was chosen.", null);
 			return;
 		}
+		else {
+			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+			DocumentBuilder dBuilder;
+			
+			try {
+				dBuilder =dbFactory.newDocumentBuilder();
+				Document document = dBuilder.parse(signedXml);
+				
+				Node importantSignatureElemen = document.getElementsByTagName("ds:SignatureValue").item(0);
+				
+				if(importantSignatureElemen == null) {
+					System.out.println("Your document doesn't contain a important part for creating time stamp");
+					
+				}
+				else {
+					String signValue = importantSignatureElemen.getTextContent();
+					//potrebne doplnit web sluzbu na opeciatkovanie
+				}
+			}
+			catch(Exception ex) {
+				setError("Error!", ex.getMessage(), getStackTrace(ex));
+			}
+		}
 
-		fileChooser.setInitialDirectory(xmlfile.getParentFile());
+		fileChooser.setInitialDirectory(signedXml.getParentFile());
 	}
 }
