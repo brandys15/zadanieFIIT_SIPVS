@@ -1,6 +1,6 @@
 package florbalovaLigaView;
 
-import java.io.BufferedOutputStream; 
+import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -10,6 +10,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Base64;
 
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
@@ -25,15 +26,16 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 
+import org.bouncycastle.tsp.TimeStampResponse;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
-import org.w3c.dom.Node;
-
 import florbalovaLiga.Callback;
 import florbalovaLiga.ResourceUtils;
+import florbalovaLiga.TimestampUtils;
 import florbalovaLiga.Utils;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -114,7 +116,7 @@ public class MainItemsController {
 	private ArrayList<ComboBox<String>> listOfLeaguestBoxes = null;
 
 	private static final int MINIMUM_PLAYER_COUNT = 3;
-	private static final int NUM_OF_XML_FILES = 2;
+	private static final int NUM_OF_XML_FILES = 1;
 
 	@FXML
 	private void initialize() {
@@ -722,33 +724,35 @@ public class MainItemsController {
 		fileChooser.getExtensionFilters().clear();
 		fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML", "*.xml"));
 		
-		
 		signedXml = fileChooser.showOpenDialog(null);
-		
 		if (signedXml == null) {
 			setError("Error!", "No XML file was chosen.", null);
 			return;
 		}
 		else {
-			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-			DocumentBuilder dBuilder;
-			
 			try {
-				dBuilder =dbFactory.newDocumentBuilder();
-				Document document = dBuilder.parse(signedXml);
-				
+				docBuilder.reset();
+				Document document = docBuilder.parse(signedXml);
+
 				Node importantSignatureElemen = document.getElementsByTagName("ds:SignatureValue").item(0);
-				
-				if(importantSignatureElemen == null) {
-					System.out.println("Your document doesn't contain a important part for creating time stamp");
-					
+
+				if (importantSignatureElemen == null) {
+					setErrorPlain("Error!", "Your document doesn't contain a important part for creating timestamp!",
+							null);
+					return;
 				}
 				else {
 					String signValue = importantSignatureElemen.getTextContent();
-					//potrebne doplnit web sluzbu na opeciatkovanie
+					String tsGenUrl = "http://test.ditec.sk/timestampws/TS.aspx";
+
+					byte request[] = TimestampUtils
+							.getRequest(Base64.getEncoder().encodeToString(signValue.getBytes()).getBytes());
+					TimeStampResponse response = TimestampUtils.getResponse(request, tsGenUrl);
+
+					String tsToken = new String(Base64.getEncoder().encode(response.getTimeStampToken().getEncoded()));
+
 				}
-			}
-			catch(Exception ex) {
+			} catch (Exception ex) {
 				setError("Error!", ex.getMessage(), getStackTrace(ex));
 			}
 		}

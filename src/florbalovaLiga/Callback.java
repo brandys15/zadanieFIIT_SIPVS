@@ -14,6 +14,7 @@ public class Callback implements sk.ditec.zep.dsigner.xades.XadesSig.Callback{
 	
 	@Override
 	public void onClose(XadesSig arg0) {
+		
 	}
 	
 }
