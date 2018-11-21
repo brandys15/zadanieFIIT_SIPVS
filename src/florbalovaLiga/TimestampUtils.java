@@ -13,6 +13,10 @@ import org.bouncycastle.tsp.TSPAlgorithms;
 import org.bouncycastle.tsp.TimeStampRequest;
 import org.bouncycastle.tsp.TimeStampRequestGenerator;
 import org.bouncycastle.tsp.TimeStampResponse;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.Text;
 
 public class TimestampUtils {
 	public static byte[] getRequest(byte[] data) throws Exception {
@@ -51,5 +55,20 @@ public class TimestampUtils {
         }
         
         return new TimeStampResponse(Base64.getDecoder().decode(result.toString()));
+	}
+	
+	public static void addTsElements(Document doc, String tsToken, Node qualifProps) {
+		Element unsignedProps = doc.createElement("xades:UnsignedProperties");
+		Element unsignedSigProps = doc.createElement("xades:UnsignedSignatureProperties");
+		Element sigTs = doc.createElement("xades:SignatureTimeStamp");
+		Element encapsulatedTs = doc.createElement("xades:EncapsulatedTimeStamp");
+		
+		unsignedProps.appendChild(unsignedSigProps);
+		unsignedSigProps.appendChild(sigTs);
+		sigTs.appendChild(encapsulatedTs);
+		
+		Text timestampNode = doc.createTextNode(tsToken);
+		encapsulatedTs.appendChild(timestampNode);
+		((Element) qualifProps).appendChild(unsignedProps);
 	}
 }

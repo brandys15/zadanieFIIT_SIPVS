@@ -64,7 +64,7 @@ public class MainItemsController {
 	private TextField txtField_email;
 	@FXML
 	private TextField txtField_phoneNum;
-	
+
 	@FXML
 	private ComboBox<String> comboBox_gender_01;
 	@FXML
@@ -178,6 +178,7 @@ public class MainItemsController {
 			setError("Error!", e.getMessage(), getStackTrace(e));
 		}
 	}
+
 	private void clearVariables() {
 		this.txtField_teamName.clear();
 		this.txtField_phoneNum.clear();
@@ -194,12 +195,15 @@ public class MainItemsController {
 	private boolean checkString(String text) {
 		return text.matches("[a-zA-Z ]+");
 	}
+
 	private boolean checkEmail(String text) {
 		return text.matches("[a-zA-Z0-9.,/*\\_%+-]+@[a-zA-Z]+\\.[a-zA-Z]{2,4}");
 	}
+
 	private boolean checkNum(String text) {
 		return text.matches("(\\+421|0)[0-9]{9}");
 	}
+
 	private int checkNumOfCompletedFields(TextField name, TextField surname, ComboBox<String> gender,
 			ComboBox<String> leaguest) {
 		int count = 0;
@@ -215,7 +219,7 @@ public class MainItemsController {
 
 		return count;
 	}
-	
+
 	private Element getPlayersElem(Document doc) {
 		Element playersElem = doc.createElement("players");
 		ArrayList<Element> listOfPlayers = new ArrayList<Element>();
@@ -288,38 +292,38 @@ public class MainItemsController {
 		File xslfile = null;
 		File xsdfile = null;
 		File xmlfile = null;
-		
-		try {		
+
+		try {
 			fileChooser.setTitle("Please choose an XSD file.");
 			fileChooser.getExtensionFilters().clear();
 			fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XSD", "*.xsd"));
-			
+
 			xsdfile = fileChooser.showOpenDialog(null);
 			if (xsdfile == null) {
 				setError("Error!", "No XSD file was chosen.", null);
 				return null;
 			}
-			
+
 			fileChooser.setInitialDirectory(xsdfile.getParentFile());
 			fileChooser.setTitle("Please choose an XSL file.");
 			fileChooser.getExtensionFilters().clear();
 			fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XSL", "*.xslt"));
-			
+
 			xslfile = fileChooser.showOpenDialog(null);
 			if (xslfile == null) {
 				setError("Error!", "No XSL file was chosen.", null);
 				return null;
 			}
-			
+
 			fileChooser.setInitialDirectory(xslfile.getParentFile());
 			list.add(xslfile);
 			list.add(xsdfile);
-			
-			for(int i = 0; i < numOfXmlFiles; i++) {
+
+			for (int i = 0; i < numOfXmlFiles; i++) {
 				fileChooser.setTitle("Please choose an XML file.");
 				fileChooser.getExtensionFilters().clear();
 				fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML", "*.xml"));
-				
+
 				xmlfile = fileChooser.showOpenDialog(null);
 				if (xmlfile == null) {
 					setError("Error!", "No XML file was chosen.", null);
@@ -330,97 +334,91 @@ public class MainItemsController {
 				list.add(xmlfile);
 				xmlfile = null;
 			}
-			
+
 			return list;
-		}
-		catch(Exception ex) {
+		} catch (Exception ex) {
 			setError("Error!", ex.getMessage(), getStackTrace(ex));
 			return null;
 		}
 	}
+
 	private int checkObjectAddingResult(XadesSig dSigner) {
 		int checker = dSigner.getReturnCode();
-		
-		if(checker != 0) {
-			if(checker == -1) {
+
+		if (checker != 0) {
+			if (checker == -1) {
 				setErrorPlain("Error!", "TS answear is empty!", dSigner.getErrorMessage());
 				return -1;
-			}	
-			else if(checker == -2) {
+			} else if (checker == -2) {
 				setErrorPlain("Error!", "Signature was not successfully created!", dSigner.getErrorMessage());
 				return -1;
-			}
-			else if(checker == -3) {
+			} else if (checker == -3) {
 				setErrorPlain("Error!", "JavaScript error!", dSigner.getErrorMessage());
 				return -1;
-			}
-			else {
+			} else {
 				setErrorPlain("Error!", "Something went wrong.", dSigner.getErrorMessage());
 				return -1;
 			}
 		}
-		
+
 		return 0;
 	}
+
 	private int checkSigningResult(XadesSig dSigner) {
 		int checker = dSigner.getReturnCode();
-		
-		if(checker != 0) {
+
+		if (checker != 0) {
 			if (checker == 1) {
-				Utils.setErrorPlain("Error!", "The signing wasn't completed.", "The signing can't be done if it's cancelled!");
+				Utils.setErrorPlain("Error!", "The signing wasn't completed.",
+						"The signing can't be done if it's cancelled!");
 				return -1;
-			}
-			else if (checker == -1) {
-				Utils.setErrorPlain("Error!", "The signing wasn't completed.", "Unkonwn algorythm of digital sign or unknown signing policy");
+			} else if (checker == -1) {
+				Utils.setErrorPlain("Error!", "The signing wasn't completed.",
+						"Unkonwn algorythm of digital sign or unknown signing policy");
 				return -1;
-			}
-			else if (checker == -2) {
+			} else if (checker == -2) {
 				Utils.setErrorPlain("Error!", "The signing wasn't completed.", "No object to sign!");
 				return -1;
-			}
-			else if (checker == -3) {
+			} else if (checker == -3) {
 				Utils.setErrorPlain("Error!", "The signing wasn't completed.", "Parameter SignatureId is empty!");
 				return -1;
-			}
-			else if (checker == -4) {
-				Utils.setErrorPlain("Error!", "The signing wasn't completed.", "SignatureId is not relevant for regular expression of ID!");
+			} else if (checker == -4) {
+				Utils.setErrorPlain("Error!", "The signing wasn't completed.",
+						"SignatureId is not relevant for regular expression of ID!");
 				return -1;
-			}
-			else if (checker == -5) {
+			} else if (checker == -5) {
 				Utils.setErrorPlain("Error!", "The signing wasn't completed.", "Ambiguity of input XML ID");
 				return -1;
-			}
-			else if (checker == -6) {
-				Utils.setErrorPlain("Error!", "The signing wasn't completed.", "DataEnvelopeId is not relevant for regular expression of ID!");
-			}
-			else if (checker == -7) {
-				Utils.setErrorPlain("Error!", "The signing wasn't completed.", "DataEnvelopeUri is not relevant for valid Uri!");
+			} else if (checker == -6) {
+				Utils.setErrorPlain("Error!", "The signing wasn't completed.",
+						"DataEnvelopeId is not relevant for regular expression of ID!");
+			} else if (checker == -7) {
+				Utils.setErrorPlain("Error!", "The signing wasn't completed.",
+						"DataEnvelopeUri is not relevant for valid Uri!");
 				return -1;
-			}
-			else if (checker == -8) {
-				Utils.setErrorPlain("Error!", "The signing wasn't completed.", "Ambiguity of DataEnvelopeId and SignatureId!");
+			} else if (checker == -8) {
+				Utils.setErrorPlain("Error!", "The signing wasn't completed.",
+						"Ambiguity of DataEnvelopeId and SignatureId!");
 				return -1;
-			}
-			else if (checker == -11) {
+			} else if (checker == -11) {
 				Utils.setErrorPlain("Error!", "The signing wasn't completed.", "Function sign is allready in progres!");
 				return -1;
-			}
-			else if (checker == -12) {
-				Utils.setErrorPlain("Error!", "The signing wasn't completed.", "Can't find plugin of incoming data type!");
+			} else if (checker == -12) {
+				Utils.setErrorPlain("Error!", "The signing wasn't completed.",
+						"Can't find plugin of incoming data type!");
 				return -1;
-			}
-			else if (checker == -13) {
-				Utils.setErrorPlain("Error!", "The signing wasn't completed.", "Before recalling of function sign() is necessary to call function reset()!");
+			} else if (checker == -13) {
+				Utils.setErrorPlain("Error!", "The signing wasn't completed.",
+						"Before recalling of function sign() is necessary to call function reset()!");
 				return -1;
-			}
-			else {
+			} else {
 				Utils.setError("Error!", "Something went wrong.", dSigner.getErrorMessage());
 				return -1;
 			}
 		}
 		return 0;
 	}
-	
+
 	private void setInformation(String title, String headerText, String contentText) {
 		Alert alert = new Alert(AlertType.INFORMATION);
 		alert.setTitle(title);
@@ -429,6 +427,7 @@ public class MainItemsController {
 
 		alert.showAndWait();
 	}
+
 	@SuppressWarnings("unused")
 	private void setWarning(String title, String headerText, String contentText) {
 		Alert alert = new Alert(AlertType.WARNING);
@@ -438,12 +437,13 @@ public class MainItemsController {
 
 		alert.showAndWait();
 	}
+
 	private void setError(String title, String headerText, String contentText) {
 		Alert alert = new Alert(AlertType.ERROR);
-		
+
 		alert.setTitle(title);
 		alert.setHeaderText(headerText);
-		
+
 		Label label = new Label("The exception stacktrace is:");
 		TextArea textArea = new TextArea(contentText);
 		textArea.setEditable(false);
@@ -458,11 +458,12 @@ public class MainItemsController {
 		expContent.setMaxWidth(Double.MAX_VALUE);
 		expContent.add(label, 0, 0);
 		expContent.add(textArea, 0, 1);
-		
+
 		alert.getDialogPane().setExpandableContent(expContent);
 
 		alert.showAndWait();
 	}
+
 	private void setErrorPlain(String title, String headerText, String contentText) {
 		Alert alert = new Alert(AlertType.ERROR);
 		alert.setTitle(title);
@@ -471,15 +472,16 @@ public class MainItemsController {
 
 		alert.showAndWait();
 	}
+
 	private String getStackTrace(Exception ex) {
 		StringWriter sw = new StringWriter();
 		PrintWriter pw = new PrintWriter(sw);
-		
+
 		ex.printStackTrace(pw);
-		
+
 		return sw.toString();
 	}
-	
+
 	/*
 	 * Core functionality of application
 	 */
@@ -502,7 +504,7 @@ public class MainItemsController {
 			xsdfile = fileChooser.showOpenDialog(null);
 			if (xsdfile != null) {
 				fileChooser.setInitialDirectory(xsdfile.getParentFile());
-				
+
 				Source xmlFile = new StreamSource(xmlfile);
 				SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
 				try {
@@ -525,12 +527,13 @@ public class MainItemsController {
 	@FXML
 	protected void GenerateXML(ActionEvent event) {
 		try {
-			Document doc = docBuilder.newDocument();			
+			Document doc = docBuilder.newDocument();
 			Element root = doc.createElement("ufl_team");
-			root.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
+			root.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:xsi",
+					"http://www.w3.org/2001/XMLSchema-instance");
 			root.setAttribute("xsi:noNamespaceSchemaLocation", "UFL.xsd");
 			doc.appendChild(root);
-						
+
 			if (this.txtField_teamName.getText().equals("")) {
 				setError("Error!", "Missing team name!", null);
 				return;
@@ -543,16 +546,16 @@ public class MainItemsController {
 				setError("Error!", "Wrong format of phone number!", "Allowed are 0900000000 or +421900000000!");
 				return;
 			}
-			
+
 			Element teamName = doc.createElement("team_name");
 			teamName.setTextContent(this.txtField_teamName.getText());
-			
+
 			Element email = doc.createElement("email");
 			email.setTextContent(this.txtField_email.getText());
-			
+
 			Element phoneNum = doc.createElement("phone_number");
 			phoneNum.setTextContent(this.txtField_phoneNum.getText());
-			
+
 			Element players = getPlayersElem(doc);
 			if (players == null)
 				return;
@@ -561,12 +564,12 @@ public class MainItemsController {
 			root.appendChild(email);
 			root.appendChild(phoneNum);
 			root.appendChild(players);
-			
+
 			Transformer transformer = TransformerFactory.newInstance().newTransformer();
 			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 			transformer.setOutputProperty(OutputKeys.STANDALONE, "yes");
 			transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
-			
+
 			DOMSource xmlSource = new DOMSource(doc);
 
 			fileChooser.setTitle("Save file as");
@@ -576,7 +579,7 @@ public class MainItemsController {
 			File file = fileChooser.showSaveDialog(null);
 			if (file != null) {
 				fileChooser.setInitialDirectory(file.getParentFile());
-				
+
 				StreamResult stream = new StreamResult(file);
 				transformer.transform(xmlSource, stream);
 				setInformation("Success!", "XML file was successfully written.", null);
@@ -597,7 +600,7 @@ public class MainItemsController {
 		fileChooser.setTitle("Please choose an XML file.");
 		fileChooser.getExtensionFilters().clear();
 		fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML", "*.xml"));
-		
+
 		try {
 			xmlfile = fileChooser.showOpenDialog(null);
 			if (xmlfile != null) {
@@ -618,100 +621,103 @@ public class MainItemsController {
 
 					File file = fileChooser.showSaveDialog(null);
 					if (file != null) {
-						BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, false), StandardCharsets.UTF_8));
+						BufferedWriter bw = new BufferedWriter(
+								new OutputStreamWriter(new FileOutputStream(file, false), StandardCharsets.UTF_8));
 						StringWriter sw = new StringWriter();
 
 						TransformerFactory transFactory = TransformerFactory.newInstance();
 						Transformer transformer = transFactory.newTransformer(xsl);
-						
+
 						transformer.transform(xml, new StreamResult(sw));
-						
+
 						bw.write(sw.toString());
 						bw.close();
-						
+
 						setInformation("Success!", "HTML file successfully written.", null);
-					} 
-					else setError("Error!", "No file was selected for creation!", null);
-				} 
-				else setError("Error!", "No file was selected! Please choose an XSL file.", null);
-			}
-			else setError("Error!", "No file was selected! Please choose an XML file.", null);
+					} else
+						setError("Error!", "No file was selected for creation!", null);
+				} else
+					setError("Error!", "No file was selected! Please choose an XSL file.", null);
+			} else
+				setError("Error!", "No file was selected! Please choose an XML file.", null);
 		} catch (Exception ex) {
 			setError("Error!", ex.getMessage(), getStackTrace(ex));
 		}
 	}
-	
+
 	@FXML
 	protected void Sign(ActionEvent event) {
 		try {
 			ArrayList<File> listOfFiles = getFilesForSigning(NUM_OF_XML_FILES);
-			if(listOfFiles == null)
+			if (listOfFiles == null)
 				return;
-			
+
 			File xslfile = listOfFiles.get(0);
 			File xsdfile = listOfFiles.get(1);
 			ArrayList<File> listOfXmlFiles = new ArrayList<File>();
-				for(int i = 2; i < listOfFiles.size(); i++)
-					listOfXmlFiles.add(listOfFiles.get(i));
-			
+			for (int i = 2; i < listOfFiles.size(); i++)
+				listOfXmlFiles.add(listOfFiles.get(i));
+
 			XadesSig dSigner = new XadesSig();
-				dSigner.installLookAndFeel();
-				dSigner.installSwingLocalization();
-				dSigner.reset();
-			
-			for(int i = 0; i < listOfXmlFiles.size(); i++) {
+			dSigner.installLookAndFeel();
+			dSigner.installSwingLocalization();
+			dSigner.reset();
+
+			for (int i = 0; i < listOfXmlFiles.size(); i++) {
 				XmlPlugin xmlPlugin = new XmlPlugin();
-				DataObject xmlObject = xmlPlugin.createObject2(
-						"xml_sig_" + i,											//object ID
-						"UFL team",											//object description
-						ResourceUtils.readResource(listOfXmlFiles.get(i).getAbsolutePath()),		//XML source
-						ResourceUtils.readResource(xsdfile.getAbsolutePath()),		//XSD source
-						"",		//Namespace URI https://github.com/nothing_is_hore
-						"http://www.w3.org/2001/XMLSchema",					//XSD reference //http://www.w3.org/2001/XMLSchema-instance
-						ResourceUtils.readResource(xslfile.getAbsolutePath()),		//XSL source
-						"http://www.w3.org/1999/XSL/Transform",				//XSL reference
+				DataObject xmlObject = xmlPlugin.createObject2("xml_sig_" + i, // object ID
+						"UFL team", // object description
+						ResourceUtils.readResource(listOfXmlFiles.get(i).getAbsolutePath()), // XML source
+						ResourceUtils.readResource(xsdfile.getAbsolutePath()), // XSD source
+						"", // Namespace URI https://github.com/nothing_is_hore
+						"http://www.w3.org/2001/XMLSchema", // XSD reference //http://www.w3.org/2001/XMLSchema-instance
+						ResourceUtils.readResource(xslfile.getAbsolutePath()), // XSL source
+						"http://www.w3.org/1999/XSL/Transform", // XSL reference
 						XmlPlugin.VISUAL_TRANSFORM_HTML);
-				
-				if(xmlObject == null) {
+
+				if (xmlObject == null) {
 					setError("Error!", "Something went wrong.", xmlPlugin.getErrorMessage());
 					return;
 				}
-				
+
 				dSigner.addObject(xmlObject);
-				if(checkObjectAddingResult(dSigner) == -1)
+				if (checkObjectAddingResult(dSigner) == -1)
 					return;
 			}
-			
-			dSigner.sign20(
-					"ufl_sig",					//signature ID
-					"http://www.w3.org/2001/04/xmlenc#sha256",			//identifikátor algoritmu pre výpoèet digitálnych odtlaèkov v rámci vytváraného elektronického podpisu; nepovinný parameter; ak je null alebo prázdny, použije sa algoritmus špecifikovaný v rámci konfigurácie aplikácie
-					"urn:oid:1.3.158.36061701.1.2.2",	//jednoznaèný identifikátor podpisovej politiky použitej pri vytváraní elektronického podpisu
-					"dataEnvelopeId",				//jednoznaèné XML Id elementu xzep:DataEnvelope
-					"dataEnvelopeURI",				//URI atribút elementu xzep:DataEnvelope
-					"dataEnvelopeDescr",			//Description atribút elementu xzep:DataEnvelope
+
+			dSigner.sign20("ufl_sig", // signature ID
+					"http://www.w3.org/2001/04/xmlenc#sha256", // identifikátor algoritmu pre výpoèet digitálnych
+																// odtlaèkov v rámci vytváraného elektronického podpisu;
+																// nepovinný parameter; ak je null alebo prázdny,
+																// použije sa algoritmus špecifikovaný v rámci
+																// konfigurácie aplikácie
+					"urn:oid:1.3.158.36061701.1.2.2", // jednoznaèný identifikátor podpisovej politiky použitej pri
+														// vytváraní elektronického podpisu
+					"dataEnvelopeId", // jednoznaèné XML Id elementu xzep:DataEnvelope
+					"dataEnvelopeURI", // URI atribút elementu xzep:DataEnvelope
+					"dataEnvelopeDescr", // Description atribút elementu xzep:DataEnvelope
 					Callback.getInstance());
-			
-			if(checkSigningResult(dSigner) == -1)
+
+			if (checkSigningResult(dSigner) == -1)
 				return;
-			
+
 			fileChooser.setTitle("Save file as");
 			fileChooser.getExtensionFilters().clear();
 			fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML", "*.xml"));
-			
+
 			File file = fileChooser.showSaveDialog(null);
 			if (file != null) {
 				BufferedOutputStream bufOut = new BufferedOutputStream(new FileOutputStream(file));
 				byte[] xmlBytes = dSigner.getSignedXmlWithEnvelope().getBytes("UTF-8");
-				
+
 				bufOut.write(xmlBytes);
 				bufOut.close();
-				
+
 				fileChooser.setInitialDirectory(file.getParentFile());
 			}
-			
-			setInformation("Success!", "Document successfully created.", null);	
-		}
-		catch(Exception ex) {
+
+			setInformation("Success!", "Document successfully created.", null);
+		} catch (Exception ex) {
 			setError("Error!", ex.getMessage(), getStackTrace(ex));
 		}
 	}
@@ -719,44 +725,63 @@ public class MainItemsController {
 	@FXML
 	protected void AddTimestamp(ActionEvent event) {
 		File signedXml = null;
-		
+
 		fileChooser.setTitle("Please choose an XML file.");
 		fileChooser.getExtensionFilters().clear();
 		fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML", "*.xml"));
-		
+
 		signedXml = fileChooser.showOpenDialog(null);
 		if (signedXml == null) {
 			setError("Error!", "No XML file was chosen.", null);
 			return;
 		}
-		else {
-			try {
-				docBuilder.reset();
-				Document document = docBuilder.parse(signedXml);
+		try {
+			fileChooser.setInitialDirectory(signedXml.getParentFile());
+			docBuilder.reset();
 
-				Node importantSignatureElemen = document.getElementsByTagName("ds:SignatureValue").item(0);
-
-				if (importantSignatureElemen == null) {
-					setErrorPlain("Error!", "Your document doesn't contain a important part for creating timestamp!",
-							null);
-					return;
-				}
-				else {
-					String signValue = importantSignatureElemen.getTextContent();
-					String tsGenUrl = "http://test.ditec.sk/timestampws/TS.aspx";
-
-					byte request[] = TimestampUtils
-							.getRequest(Base64.getEncoder().encodeToString(signValue.getBytes()).getBytes());
-					TimeStampResponse response = TimestampUtils.getResponse(request, tsGenUrl);
-
-					String tsToken = new String(Base64.getEncoder().encode(response.getTimeStampToken().getEncoded()));
-
-				}
-			} catch (Exception ex) {
-				setError("Error!", ex.getMessage(), getStackTrace(ex));
+			Document doc = docBuilder.parse(signedXml);
+			Node sigElem = doc.getElementsByTagName("ds:SignatureValue").item(0);
+			if (sigElem == null) {
+				setErrorPlain("Error!", "Your document doesn't contain a important part for creating timestamp!", null);
+				return;
 			}
-		}
 
-		fileChooser.setInitialDirectory(signedXml.getParentFile());
+			String signValue = sigElem.getTextContent();
+			String tsGenUrl = "http://test.ditec.sk/timestampws/TS.aspx";
+			byte request[] = TimestampUtils.getRequest(Base64.getEncoder().encodeToString(signValue.getBytes()).getBytes());
+			TimeStampResponse response = TimestampUtils.getResponse(request, tsGenUrl);
+
+			Node qualifProps = doc.getElementsByTagName("xades:QualifyingProperties").item(0);
+			if (qualifProps == null) {
+				setErrorPlain("Error!", "Error! Missing 'xades:QualifyingProperties' element from signed XML document", null);
+				return;
+			}
+			
+			String tsToken = new String(Base64.getEncoder().encode(response.getTimeStampToken().getEncoded()));
+			TimestampUtils.addTsElements(doc, tsToken, qualifProps);
+			
+			Transformer transformer = TransformerFactory.newInstance().newTransformer();
+			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+			transformer.setOutputProperty(OutputKeys.STANDALONE, "yes");
+			transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+
+			DOMSource xmlSource = new DOMSource(doc);
+
+			fileChooser.setTitle("Save file as");
+			fileChooser.getExtensionFilters().clear();
+			fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("XML", "*.xml"));
+
+			File file = fileChooser.showSaveDialog(null);
+			if (file != null) {
+				fileChooser.setInitialDirectory(file.getParentFile());
+
+				StreamResult stream = new StreamResult(file);
+				transformer.transform(xmlSource, stream);
+				setInformation("Success!", "XML file was successfully written.", null);
+			}
+			else setError("Error!", "No file was selected for creation!", null);
+		} catch (Exception ex) {
+			setError("Error!", ex.getMessage(), getStackTrace(ex));
+		}
 	}
 }
