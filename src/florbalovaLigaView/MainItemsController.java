@@ -831,44 +831,50 @@ public class MainItemsController {
 		}
 		fileChooser.setInitialDirectory(xmlFiles.get(0).getParentFile());
 		
-		DocVerifyUtils docVerifier = DocVerifyUtils.getInstance();
-		String report = docVerifier.checkDocuments(xmlFiles);
-		
-		setFileInfo("Verifying successfully completed!", "Open report to see further information.", report);
-		
-		ButtonType yes = new ButtonType("YES", ButtonBar.ButtonData.OK_DONE);
-		ButtonType no = new ButtonType("NO", ButtonBar.ButtonData.CANCEL_CLOSE);
-		
-		Alert alert = new Alert(AlertType.CONFIRMATION,
-		        "Do you want to save the report?",
-		        yes,
-		        no);
+		try {
 
-		alert.setTitle("Report saving");
-		Optional<ButtonType> result = alert.showAndWait();
-		
-		if(result.orElse(no) == yes) {
-			try {
-				fileChooser.setTitle("Save file as");
-				fileChooser.getExtensionFilters().clear();
-				fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text file", "*.txt"));
+			DocVerifyUtils docVerifier = DocVerifyUtils.getInstance();
+			String report = docVerifier.checkDocuments(xmlFiles);
+			
+			setFileInfo("Verifying successfully completed!", "Open report to see further information.", report);
+			
+			ButtonType yes = new ButtonType("YES", ButtonBar.ButtonData.OK_DONE);
+			ButtonType no = new ButtonType("NO", ButtonBar.ButtonData.CANCEL_CLOSE);
+			
+			Alert alert = new Alert(AlertType.CONFIRMATION,
+			        "Do you want to save the report?",
+			        yes,
+			        no);
 
-				File file = fileChooser.showSaveDialog(null);
-				if (file != null) {
-					fileChooser.setInitialDirectory(file.getParentFile());
+			alert.setTitle("Report saving");
+			Optional<ButtonType> result = alert.showAndWait();
+			
+			if(result.orElse(no) == yes) {
+				try {
+					fileChooser.setTitle("Save file as");
+					fileChooser.getExtensionFilters().clear();
+					fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text file", "*.txt"));
 
-					BufferedOutputStream bufOut = new BufferedOutputStream(new FileOutputStream(file));
-					bufOut.write(report.getBytes());
-					
-					setInformation("Success!", "Report file was successfully written.", null);
-					bufOut.close();
-				} else {
-					setError("Error!", "No file was selected for creation!", null);
+					File file = fileChooser.showSaveDialog(null);
+					if (file != null) {
+						fileChooser.setInitialDirectory(file.getParentFile());
+
+						BufferedOutputStream bufOut = new BufferedOutputStream(new FileOutputStream(file));
+						bufOut.write(report.getBytes());
+						
+						setInformation("Success!", "Report file was successfully written.", null);
+						bufOut.close();
+					} else {
+						setError("Error!", "No file was selected for creation!", null);
+					}
+				}
+				catch(Exception ex) {
+					setError("Error!", ex.getMessage(), getStackTrace(ex));
 				}
 			}
-			catch(Exception ex) {
-				setError("Error!", ex.getMessage(), getStackTrace(ex));
-			}
+		}
+		catch(Exception e) {
+			setError("Error!", e.getMessage(), getStackTrace(e));
 		}
 	}
 }
