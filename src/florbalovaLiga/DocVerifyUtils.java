@@ -9,6 +9,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 public class DocVerifyUtils {
 	private static DocVerifyUtils instance = null;
@@ -23,6 +24,7 @@ public class DocVerifyUtils {
 	}
 	private DocVerifyUtils() throws Exception {
 		docFactory = DocumentBuilderFactory.newInstance();
+		docFactory.setNamespaceAware(true);
 		docBuilder = docFactory.newDocumentBuilder();
 	}
 	
@@ -37,7 +39,8 @@ public class DocVerifyUtils {
 			//		  what will be appended to StringBuilder instance
 			sb.append("1. Overenie dátovej obálky:" + '\n');
 			sb.append(checkDataEnvelope(doc));
-			
+			sb.append("2. Overenie XML Signature:" + '\n');
+			sb.append(checkXMLSignature(doc));
 			sb.append("----------------------------------------------------------------------------------------------\n");
 		}
 		
@@ -101,5 +104,43 @@ public class DocVerifyUtils {
 		return sb.toString();
 	}
 	
-	
+	private String checkXMLSignature(Document doc) throws Exception {
+		StringBuilder sb = new StringBuilder();
+		String content;
+		boolean checker = false;
+		Node sigMethodElem = doc.getElementsByTagName("ds:SignatureMethod").item(0);
+		Node canMethodElem = doc.getElementsByTagName("ds:CanonicalizationMethod").item(0);
+		Node sigInfo = doc.getElementsByTagName("ds:SignedInfo").item(0);	
+		NodeList nodeListTransform = ((Element) sigInfo).getElementsByTagName("ds:Transform");
+		NodeList nodeListDigest = ((Element) sigInfo).getElementsByTagName("ds:DigestMethod");
+		for(int x = 0,size= nodeListTransform.getLength(); x<size; x++) {
+            content = nodeListTransform.item(x).getAttributes().getNamedItem("Algorithm").getNodeValue();
+            if (!content.matches("http://www.w3.org/TR/2001/REC-xml-c14n-20010315")) {
+            	sb.append("Chyba, "+ (x + 1) + ". transform neobsahuje podporovaný algoritmus ale" + content + "\n");
+            	checker = true;
+            }
+        }
+		for(int x=0,size= nodeListDigest.getLength(); x<size+0; x++) {
+            content = nodeListDigest.item(x).getAttributes().getNamedItem("Algorithm").getNodeValue();
+        	if (!content.matches("http://www.w3.org/200[01]/0[49]/xml((dsig-more#sha[23][28]4)|(dsig#sha1)|(enc#sha[25][15][26]))")) {
+        	sb.append("Chyba, "+ (x + 1) + ". digestMethod neobsahuje podporovaný algoritmus ale" + content + "\n");
+        	checker = true;
+        	}
+		}
+		String sigValue = sigMethodElem.getAttributes().getNamedItem("Algorithm").getNodeValue();
+		String canValue = canMethodElem.getAttributes().getNamedItem("Algorithm").getNodeValue();
+		if (!sigValue.matches("http://www.w3.org/200[01]/0[49]/xmldsig((-more#rsa-sha[235][158][246])|(#[dr]sa-sha1))")) {
+			sb.append("Chyba, SignatureMethod neobsahuje podporovaný algoritmus ale " + sigValue);
+			checker = true;
+		}
+		else if(!canValue.matches("http://www.w3.org/TR/2001/REC-xml-c14n-20010315")) {
+			sb.append("Chyba, CanonicalizationMethod neobsahuje podporovaný algoritmus ale " + sigValue);
+			checker = true;
+		}
+		else if (checker) {
+			sb.append("   ZHRNUTIE - Daný dokument NESPÅÒA všetky požiadavky oèakávaný pre overenie XML Signature." + '\n');
+		} 
+		else sb.append("   ZHRNUTIE - Daný dokument SPÅÒA všetky požiadavky oèakávaný pre overenie XML Signature." + '\n');
+		return sb.toString();
+	}
 }
