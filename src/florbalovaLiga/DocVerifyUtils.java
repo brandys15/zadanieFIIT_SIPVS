@@ -39,9 +39,13 @@ public class DocVerifyUtils {
 			//		  what will be appended to StringBuilder instance
 			sb.append("1. Overenie dátovej obálky:" + '\n');
 			sb.append(checkDataEnvelope(doc));
+			
 			sb.append("2. Overenie XML Signature:" + '\n');
 			sb.append(checkXMLSignature(doc));
+			
+			sb.append("3. Core validácia:" + '\n');
 			checkSignatureReference(doc);
+			sb.append(checkOtherXAdESElements(doc));
 			sb.append("----------------------------------------------------------------------------------------------\n");
 		}
 		
@@ -169,6 +173,115 @@ public class DocVerifyUtils {
 			content2 = ((Element) nodeListReferences.item(x)).getElementsByTagName("ds:DigestValue").item(0).getTextContent();  // get from concrete reference the element DigestValue
 			System.out.println(content1 + "\n" + content2 + "\n");
 		}
+		return sb.toString();
+	}
+	
+	private String checkOtherXAdESElements(Document doc) {
+		StringBuilder sb = new StringBuilder();
+		
+		
+		//OVERENIE ds:Signature
+		Element sigElem = (Element) doc.getElementsByTagName("ds:Signature").item(0);
+		String sigIdAttr = sigElem.getAttribute("Id");
+		String sigNamespaceAttr = sigElem.getAttribute("xmlns:ds");
+		String xadesIdAttr = ((Element) doc.getElementsByTagName("xades:QualifyingProperties").item(0)).getAttribute("Target");
+		//Id atribut
+		if(sigIdAttr == null || sigIdAttr.equals(""))
+			sb.append("   c) CHYBA - element ds:Signature neobsahuje atribút Id." + '\n');
+		else if(!sigIdAttr.equals(xadesIdAttr))
+			sb.append("   c) CHYBA - hodnota atribútu Id patriaci elementu ds:Signature je nesprávna." + '\n' + "      Jeho hodnota je: " + sigIdAttr + '\n');
+		else sb.append("   c) Element ds:Signature obsahuje atribút Id." + '\n');
+		//xmlns:ds atribut
+		if(sigNamespaceAttr == null || sigNamespaceAttr.equals(""))
+			sb.append("   d) CHYBA - element ds:Signature nemá špecifikovaný namespace xmlns:ds." + '\n');
+		else if(!sigNamespaceAttr.equals("http://www.w3.org/2000/09/xmldsig#"))
+			sb.append("   d) CHYBA - hodnota atribútu xmlns:ds patriaci elementu ds:Signature je nesprávna." + '\n' + "      Jeho hodnota je: " + sigNamespaceAttr + '\n');
+		else sb.append("   d) Element ds:Signature obsahuje namespace xmlns:ds." + '\n');
+		
+		
+		//OVERENIE ds:SignatureValue
+		String sigValIdAttr = ((Element) doc.getElementsByTagName("ds:SignatureValue").item(0)).getAttribute("Id");
+		//String xadesSigValIdAttr = ((Element) doc.getElementsByTagName("xades:SignatureTimeStamp").item(0)).getAttribute("Id"); - nepouzite
+		if(sigValIdAttr == null || sigValIdAttr.equals(""))
+			sb.append("   e) CHYBA - element ds:SignatureValue neobsahuje atribút Id." + '\n');
+		else sb.append("   e) Element ds:SignatureValue obsahuje atribút Id." + '\n');
+		
+		
+		//OVERENIE ds:SignedInfo
+		//NodeList refNodes = doc.getElementsByTagName("ds:Reference");
+		NodeList nodes = ((Element) doc.getElementsByTagName("ds:SignedInfo").item(0)).getElementsByTagName("ds:Reference");
+		String keyInfoId = ((Element) doc.getElementsByTagName("ds:KeyInfo").item(0)).getAttribute("Id");
+		String sigPropsId = ((Element) doc.getElementsByTagName("ds:SignatureProperties").item(0)).getAttribute("Id");
+		String xadesSigPropsId = ((Element) doc.getElementsByTagName("xades:SignedProperties").item(0)).getAttribute("Id");
+		//String manifestId = ((Element) doc.getElementsByTagName("ds:Manifest").item(0)).getAttribute("Id");
+		String refType = null;
+		boolean keyInfoCont = false, sigPropsCont = false, signedPropsCont = false, manifestCont = true, manifestIdCheck = true;
+		Element keyInfoRef = null, sigPropsRef = null, signedPropsRef = null; //, manifestRef = null;
+		
+		for(int i = 0; i < nodes.getLength(); i++) {
+			Element elem = (Element) nodes.item(i);
+			String refId = elem.getAttribute("Id");
+			
+			if(refId.contains(keyInfoId)) {
+				keyInfoCont = true;
+				keyInfoRef = elem;
+			}
+			else if(refId.contains(sigPropsId)) {
+				sigPropsCont = true;
+				sigPropsRef = elem;
+			}
+			else if(refId.contains(xadesSigPropsId)) {
+				signedPropsCont = true;
+				signedPropsRef = elem;
+			}
+			else if(!refId.contains("ManifestObject")) {
+				manifestCont = false;
+				if(!elem.getAttribute("Type").equals("http://www.w3.org/2000/09/xmldsig#Manifest"))
+					manifestIdCheck = false;
+			}
+		}
+		
+		if(keyInfoCont)
+			sb.append("   f) ds:SignedInfo obsahuje referenciu na ds:KeyInfo element." + '\n');
+		else sb.append("   f) CHYBA - ds:SignedInfo neobsahuje referenciu na ds:KeyInfo element." + '\n');
+		if(keyInfoRef != null && keyInfoRef.hasAttribute("Type")) {
+			refType = keyInfoRef.getAttribute("Type");
+			if(! refType.equals("http://www.w3.org/2000/09/xmldsig#Object"))
+				sb.append("   g) CHYBA - atribút Type v referencii na ds:KeyInfo v elemente ds:SignedInfo nie je v správnom tvare." + '\n' + "      Jeho hodnota je " + refType + '\n');
+			else sb.append("   g) Atribút Type v referencii na ds:KeyInfo v elemente ds:SignedInfo je v správnom tvare." + '\n');
+		}
+		else sb.append("   g) CHYBA - Atribút Type v referencii na ds:KeyInfo v elemente ds:SignedInfo chýba." + '\n');
+		
+		if(sigPropsCont)
+			sb.append("   h) ds:SignedInfo obsahuje referenciu na ds:SignatureProperties element." + '\n');
+		else sb.append("   h) CHYBA - ds:SignedInfo neobsahuje referenciu na ds:SignatureProperties element." + '\n');
+		if(sigPropsRef != null && sigPropsRef.hasAttribute("Type")) {
+			refType = sigPropsRef.getAttribute("Type");
+			if(! refType.equals("http://www.w3.org/2000/09/xmldsig#SignatureProperties"))
+				sb.append("   i) CHYBA - atribút Type v referencii na ds:SignatureProperties v elemente ds:SignedInfo nie je v správnom tvare." + '\n' + "      Jeho hodnota je " + refType + '\n');
+			else sb.append("   i) Atribút Type v referencii na ds:SignatureProperties v elemente ds:SignedInfo je v správnom tvare." + '\n');
+		}
+		else sb.append("   i) CHYBA - Atribút Type v referencii na ds:SignatureProperties v elemente ds:SignedInfo chýba." + '\n');
+		
+		if(signedPropsCont)
+			sb.append("   j) ds:SignedInfo obsahuje referenciu na xades:SignedProperties element." + '\n');
+		else sb.append("   j) CHYBA - ds:SignedInfo neobsahuje referenciu na xades:SignedProperties element." + '\n');
+		if(signedPropsRef != null && signedPropsRef.hasAttribute("Type")) {
+			refType = signedPropsRef.getAttribute("Type");
+			if(! refType.equals("http://uri.etsi.org/01903#SignedProperties"))
+				sb.append("   k) CHYBA - atribút Type v referencii na xades:SignedProperties v elemente ds:SignedInfo nie je v správnom tvare." + '\n' + "      Jeho hodnota je " + refType + '\n');
+			else sb.append("   k) Atribút Type v referencii na xades:SignedProperties v elemente ds:SignedInfo je v správnom tvare." + '\n');
+		}
+		else sb.append("   k) CHYBA - Atribút Type v referencii na xades:SignedProperties v elemente ds:SignedInfo chýba." + '\n'); 
+
+		if(manifestCont)
+			sb.append("   l) ds:SignedInfo obsahuje referencie na ds:Manifest element v správnom tvare." + '\n');
+		else sb.append("   l) CHYBA - ds:SignedInfo má nekonzistentné referencie na ds:Manifest element." + '\n');
+		if(manifestIdCheck)
+			sb.append("   m) Atribút Type v referenciách na ds:Manifest v elementoch ds:SignedInfo sú v správnom tvare." + '\n');
+		else sb.append("   m) CHYBA - Atribút Type v referenciách na ds:Manifest v elementoch ds:SignedInfo nie sú konzistentné." + '\n');
+		//
+		
 		return sb.toString();
 	}
 }
