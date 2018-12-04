@@ -41,6 +41,7 @@ public class DocVerifyUtils {
 			sb.append(checkDataEnvelope(doc));
 			sb.append("2. Overenie XML Signature:" + '\n');
 			sb.append(checkXMLSignature(doc));
+			checkSignatureReference(doc);
 			sb.append("----------------------------------------------------------------------------------------------\n");
 		}
 		
@@ -120,7 +121,7 @@ public class DocVerifyUtils {
             	checker = true;
             }
         }
-		for(int x=0,size= nodeListDigest.getLength(); x<size+0; x++) {
+		for(int x=0,size= nodeListDigest.getLength(); x<size; x++) {
             content = nodeListDigest.item(x).getAttributes().getNamedItem("Algorithm").getNodeValue();
         	if (!content.matches("http://www.w3.org/200[01]/0[49]/xml((dsig-more#sha[23][28]4)|(dsig#sha1)|(enc#sha[25][15][26]))")) {
         	sb.append("Chyba, "+ (x + 1) + ". digestMethod neobsahuje podporovaný algoritmus ale" + content + "\n");
@@ -141,6 +142,22 @@ public class DocVerifyUtils {
 			sb.append("   ZHRNUTIE - Daný dokument NESPÅÒA všetky požiadavky oèakávaný pre overenie XML Signature." + '\n');
 		} 
 		else sb.append("   ZHRNUTIE - Daný dokument SPÅÒA všetky požiadavky oèakávaný pre overenie XML Signature." + '\n');
+		return sb.toString();
+	}
+	
+	private String checkSignatureReference (Document doc) {
+		StringBuilder sb = new StringBuilder();
+		String content1, content2;
+		Node refElem;
+		Node sigInfo = doc.getElementsByTagName("ds:SignedInfo").item(0);	// get element signedInfo
+		NodeList nodeListReferences = ((Element) sigInfo).getElementsByTagName("ds:Reference");	// get list of reference elements
+		//NodeList nodeListDigestValue = ((Element) sigInfo).getElementsByTagName("ds:DigestValue");
+		for(int x=0,size= nodeListReferences.getLength(); x<size; x++) {
+			content1 = nodeListReferences.item(x).getAttributes().getNamedItem("URI").getNodeValue().substring(1);	// get from each reference element the URI attribute
+			refElem = ((Element) nodeListReferences.item(x)).getElementsByTagName("ds:DigestValue").item(0);  // get from concrete reference the element DigestValue
+			content2 = refElem.getNodeName() + "\n" + refElem.getNodeValue();		// name is there, value is null HOW?
+			System.out.println(content1 + "\n" + content2 + "\n");
+		}
 		return sb.toString();
 	}
 }
