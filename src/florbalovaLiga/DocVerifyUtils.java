@@ -148,14 +148,11 @@ public class DocVerifyUtils {
 	private String checkSignatureReference (Document doc) {
 		StringBuilder sb = new StringBuilder();
 		String content1, content2;
-		Node refElem;
 		Node sigInfo = doc.getElementsByTagName("ds:SignedInfo").item(0);	// get element signedInfo
 		NodeList nodeListReferences = ((Element) sigInfo).getElementsByTagName("ds:Reference");	// get list of reference elements
-		//NodeList nodeListDigestValue = ((Element) sigInfo).getElementsByTagName("ds:DigestValue");
 		for(int x=0,size= nodeListReferences.getLength(); x<size; x++) {
 			content1 = nodeListReferences.item(x).getAttributes().getNamedItem("URI").getNodeValue().substring(1);	// get from each reference element the URI attribute
-			refElem = ((Element) nodeListReferences.item(x)).getElementsByTagName("ds:DigestValue").item(0);  // get from concrete reference the element DigestValue
-			content2 = refElem.getNodeName() + "\n" + refElem.getNodeValue();		// name is there, value is null HOW?
+			content2 = ((Element) nodeListReferences.item(x)).getElementsByTagName("ds:DigestValue").item(0).getTextContent();  // get from concrete reference the element DigestValue
 			System.out.println(content1 + "\n" + content2 + "\n");
 		}
 		return sb.toString();
