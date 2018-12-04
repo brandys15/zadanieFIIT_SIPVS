@@ -1,6 +1,10 @@
 package florbalovaLiga;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+import java.util.Base64;
 import java.util.List;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -176,21 +180,22 @@ public class DocVerifyUtils {
 		return sb.toString();
 	}
 	
-	private String checkOtherXAdESElements(Document doc) {
+	private String checkDsSignature(Document doc) {
 		StringBuilder sb = new StringBuilder();
-		
 		
 		//OVERENIE ds:Signature
 		Element sigElem = (Element) doc.getElementsByTagName("ds:Signature").item(0);
 		String sigIdAttr = sigElem.getAttribute("Id");
 		String sigNamespaceAttr = sigElem.getAttribute("xmlns:ds");
 		String xadesIdAttr = ((Element) doc.getElementsByTagName("xades:QualifyingProperties").item(0)).getAttribute("Target");
+		
 		//Id atribut
 		if(sigIdAttr == null || sigIdAttr.equals(""))
 			sb.append("   c) CHYBA - element ds:Signature neobsahuje atrib˙t Id." + '\n');
-		else if(!sigIdAttr.equals(xadesIdAttr))
+		else if(!xadesIdAttr.contains(sigIdAttr))
 			sb.append("   c) CHYBA - hodnota atrib˙tu Id patriaci elementu ds:Signature je nespr·vna." + '\n' + "      Jeho hodnota je: " + sigIdAttr + '\n');
 		else sb.append("   c) Element ds:Signature obsahuje atrib˙t Id." + '\n');
+		
 		//xmlns:ds atribut
 		if(sigNamespaceAttr == null || sigNamespaceAttr.equals(""))
 			sb.append("   d) CHYBA - element ds:Signature nem· öpecifikovan˝ namespace xmlns:ds." + '\n');
@@ -198,22 +203,34 @@ public class DocVerifyUtils {
 			sb.append("   d) CHYBA - hodnota atrib˙tu xmlns:ds patriaci elementu ds:Signature je nespr·vna." + '\n' + "      Jeho hodnota je: " + sigNamespaceAttr + '\n');
 		else sb.append("   d) Element ds:Signature obsahuje namespace xmlns:ds." + '\n');
 		
+		return sb.toString();
+	}
+	private String checkDsSignatureValue(Document doc) {
+		StringBuilder sb = new StringBuilder();
 		
 		//OVERENIE ds:SignatureValue
 		String sigValIdAttr = ((Element) doc.getElementsByTagName("ds:SignatureValue").item(0)).getAttribute("Id");
-		//String xadesSigValIdAttr = ((Element) doc.getElementsByTagName("xades:SignatureTimeStamp").item(0)).getAttribute("Id"); - nepouzite
+		String xadesSigValIdAttr = ((Element) doc.getElementsByTagName("xades:SignatureTimeStamp").item(0)).getAttribute("Id");
+		String el = xadesSigValIdAttr.split("Signature")[1];
+		
 		if(sigValIdAttr == null || sigValIdAttr.equals(""))
 			sb.append("   e) CHYBA - element ds:SignatureValue neobsahuje atrib˙t Id." + '\n');
+		else if(!sigValIdAttr.contains(el))
+			sb.append("   e) CHYBA - hodnota atrib˙tu Id z elementu ds:SignatureValue sa nezhoduje s hodnotou v xades:SignatureTimeStamp." + '\n' + "      Jeho hodnota je: " + xadesSigValIdAttr + '\n');
 		else sb.append("   e) Element ds:SignatureValue obsahuje atrib˙t Id." + '\n');
 		
+		return sb.toString();
+	}
+	private String checkDsSignedInfo(Document doc) {
+		StringBuilder sb = new StringBuilder();
 		
 		//OVERENIE ds:SignedInfo
-		//NodeList refNodes = doc.getElementsByTagName("ds:Reference");
 		NodeList nodes = ((Element) doc.getElementsByTagName("ds:SignedInfo").item(0)).getElementsByTagName("ds:Reference");
 		String keyInfoId = ((Element) doc.getElementsByTagName("ds:KeyInfo").item(0)).getAttribute("Id");
 		String sigPropsId = ((Element) doc.getElementsByTagName("ds:SignatureProperties").item(0)).getAttribute("Id");
 		String xadesSigPropsId = ((Element) doc.getElementsByTagName("xades:SignedProperties").item(0)).getAttribute("Id");
 		//String manifestId = ((Element) doc.getElementsByTagName("ds:Manifest").item(0)).getAttribute("Id");
+		
 		String refType = null;
 		boolean keyInfoCont = false, sigPropsCont = false, signedPropsCont = false, manifestCont = true, manifestIdCheck = true;
 		Element keyInfoRef = null, sigPropsRef = null, signedPropsRef = null; //, manifestRef = null;
@@ -280,7 +297,92 @@ public class DocVerifyUtils {
 		if(manifestIdCheck)
 			sb.append("   m) Atrib˙t Type v referenci·ch na ds:Manifest v elementoch ds:SignedInfo s˙ v spr·vnom tvare." + '\n');
 		else sb.append("   m) CHYBA - Atrib˙t Type v referenci·ch na ds:Manifest v elementoch ds:SignedInfo nie s˙ konzistentnÈ." + '\n');
-		//
+		
+		return sb.toString();
+	}
+	private String checkDsKeyInfo(Document doc) throws Exception {
+		StringBuilder sb = new StringBuilder();
+		
+		//OVERENIE ds:KeyInfo
+		Element keyInfo = (Element) doc.getElementsByTagName("ds:KeyInfo").item(0);
+		String keyInfoId = keyInfo.getAttribute("Id");
+		
+		if(keyInfoId == null || keyInfoId.equals(""))
+			sb.append("   n) CHYBA - ds:KeyInfo neobsahuje atrib˙t Id." + '\n');
+		else sb.append("   n) ds:keyInfo obsahuje atrib˙t Id." + '\n');
+		
+		Element x509Data = ((Element)keyInfo.getElementsByTagName("ds:X509Data").item(0));
+		
+		if(x509Data == null) {
+			sb.append("   o) CHYBA - ds:keyInfo neobsahuje element ds:509Data." + '\n');
+			return sb.toString();
+		}
+		sb.append("   o) ds:keyInfo obsahuje element ds:509Data." + '\n');
+		
+		Element x509Certificate = (Element)x509Data.getElementsByTagName("ds:X509Certificate").item(0);
+		Element x509Issuer = (Element)x509Data.getElementsByTagName("ds:X509IssuerSerial").item(0);
+		Element x509SubjName = (Element)x509Data.getElementsByTagName("ds:X509SubjectName").item(0);
+		boolean checker = false;
+		
+		if(x509Issuer == null) {
+			sb.append("   p) CHYBA - ds:KeyInfo neobsahuje element ds:X509IssuerSerial." + '\n');
+			checker = true;
+		}
+		else sb.append("   p) ds:KeyInfo obsahuje element ds:X509IssuerSerial." + '\n');
+			
+		if(x509SubjName == null) {
+			sb.append("   q) CHYBA - ds:KeyInfo neobsahuje element ds:X509SubjectName." + '\n');
+			checker = true;
+		}
+		else sb.append("   q) ds:KeyInfo obsahuje element ds:X509SubjectName." + '\n');
+		
+		if(x509Certificate == null) {
+			sb.append("   r) CHYBA - ds:KeyInfo neobsahuje element ds:X509Certificate." + '\n');
+			checker = true;
+		}
+		else sb.append("   r) ds:KeyInfo obsahuje element ds:X509Certificate." + '\n');
+		
+		if(checker) {
+			sb.append("   s) Ch˝baj˙ci element (alebo elementy) z radu X509. Ned· sa overiù ich hodnota vzhæadom na certifik·t." + '\n');
+			return sb.toString();
+		}
+		
+		byte encodedByteCert[] = Base64.getDecoder().decode(x509Certificate.getTextContent().getBytes());
+		ByteArrayInputStream inStream = new ByteArrayInputStream(encodedByteCert);
+		
+		CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
+		X509Certificate cert = (X509Certificate) certFactory.generateCertificate(inStream);
+		
+		String certSubjectName = cert.getSubjectDN().getName();
+		String certSerialNum = cert.getSerialNumber().toString();
+		String certIssuerName = cert.getIssuerX500Principal().getName();
+		
+		String docSubjectName = x509SubjName.getTextContent();
+		String docSerialNum = ((Element)x509Issuer.getElementsByTagName("ds:X509SerialNumber").item(0)).getTextContent();
+		String docIssuerName = ((Element)x509Issuer.getElementsByTagName("ds:X509IssuerName").item(0)).getTextContent().replaceAll(", ", ",");
+		
+		if(certSubjectName.equals(docSubjectName))
+			sb.append("   s) - objekt ds:X509SubjectName sa zhoduje s hodnotou v certifik·te." + '\n');
+		else sb.append("   s) - CHYBA - objekt ds:X509SubjectName sa zhoduje s hodnotou v certifik·te." + '\n' + "Jeho hodnota je " + docSubjectName + '\n');
+		
+		if(certSerialNum.equals(docSerialNum))
+			sb.append("       - objekt ds:X509SerialNumber sa zhoduje s hodnotou v certifik·te." + '\n');
+		else sb.append("       - CHYBA - objekt ds:X509SerialNumber sa nezhoduje s hodnotou v certifik·te." + '\n' + "Jeho hodnota je " + docSerialNum + '\n');
+		
+		if(certIssuerName.equals(docIssuerName))
+			sb.append("       - objekt ds:X509IssuerName sa zhoduje s hodnotou v certifik·te." + '\n');
+		else sb.append("       - CHYBA - objekt ds:X509IssuerName sa nezhoduje s hodnotou v certifik·te." + '\n' + "Jeho hodnota je " + docIssuerName + '\n');
+		
+		return sb.toString();
+	}
+	
+	private String checkOtherXAdESElements(Document doc) throws Exception {
+		StringBuilder sb = new StringBuilder();
+		
+		sb.append(checkDsSignature(doc));
+		sb.append(checkDsSignatureValue(doc));
+		sb.append(checkDsSignedInfo(doc));
+		sb.append(checkDsKeyInfo(doc));
 		
 		return sb.toString();
 	}
