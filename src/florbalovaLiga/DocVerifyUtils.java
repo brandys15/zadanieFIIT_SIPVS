@@ -1,8 +1,12 @@
 package florbalovaLiga;
+import florbalovaLiga.ResourceUtils;
+import jdk.internal.org.xml.sax.SAXException;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.IOException;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -12,13 +16,24 @@ import java.util.List;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
+
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
+import javax.xml.xpath.*;
+
+import org.apache.xml.security.c14n.CanonicalizationException;
+import org.apache.xml.security.c14n.Canonicalizer;
+import org.apache.xml.security.c14n.InvalidCanonicalizerException;
+import org.apache.xml.security.Init;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import com.sun.org.apache.xml.internal.security.c14n.Canonicalizer;
 
 public class DocVerifyUtils {
 	private static DocVerifyUtils instance = null;
@@ -53,7 +68,7 @@ public class DocVerifyUtils {
 			sb.append(checkXMLSignature(doc));
 			
 			sb.append("3. Core validácia:" + '\n');
-			checkSignatureReference(doc);
+			sb.append(checkSignatureReference(doc));
 			sb.append(checkOtherXAdESElements(doc));
 			sb.append("----------------------------------------------------------------------------------------------\n");
 		}
@@ -172,15 +187,36 @@ public class DocVerifyUtils {
 		return sb.toString();
 	}
 	
-	private String checkSignatureReference (Document doc) {
+	private String checkSignatureReference (Document doc) throws TransformerException, InvalidCanonicalizerException, CanonicalizationException, ParserConfigurationException, IOException, NoSuchAlgorithmException, org.xml.sax.SAXException {
 		StringBuilder sb = new StringBuilder();
-		String content1, content2;
+		String canonMethod = "http://www.w3.org/TR/2001/REC-xml-c14n-20010315";
+		String URI, digestValue, calculatedDigestValue;
+		Element referenceElem = null;
+		byte[] manifestBytes = null; 
+		MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
 		Node sigInfo = doc.getElementsByTagName("ds:SignedInfo").item(0);	// get element signedInfo
 		NodeList nodeListReferences = ((Element) sigInfo).getElementsByTagName("ds:Reference");	// get list of reference elements
+		NodeList nodeListManifest =  doc.getElementsByTagName("ds:Manifest");
 		for(int x=0,size= nodeListReferences.getLength(); x<size; x++) {
-			content1 = nodeListReferences.item(x).getAttributes().getNamedItem("URI").getNodeValue().substring(1);	// get from each reference element the URI attribute
-			content2 = ((Element) nodeListReferences.item(x)).getElementsByTagName("ds:DigestValue").item(0).getTextContent();  // get from concrete reference the element DigestValue
-			System.out.println(content1 + "\n" + content2 + "\n");
+			URI = nodeListReferences.item(x).getAttributes().getNamedItem("URI").getNodeValue().substring(1);	// get from each reference element the URI attribute
+
+	        for (int i = 0; i <nodeListManifest.getLength(); i++) {
+	        	Element reference = (Element) nodeListManifest.item(i); // get "ds:Manifest" elements
+	        	if (reference.getAttribute("Id").equals(URI)) {
+	        		referenceElem = reference;
+	        	} else referenceElem = null;
+	        }
+	        
+        	if(referenceElem != null) {
+        		Init.init(); // init xml security
+        		Canonicalizer canonicalizer = Canonicalizer.getInstance(canonMethod);
+        		manifestBytes = canonicalizer.canonicalize(ResourceUtils.elementToBytes(referenceElem));
+    			digestValue = ((Element) nodeListReferences.item(x)).getElementsByTagName("ds:DigestValue").item(0).getTextContent();  // get from concrete reference the element DigestValue
+    			calculatedDigestValue = new String(Base64.getEncoder().encode(messageDigest.digest(manifestBytes)));
+    			if (digestValue.equals(calculatedDigestValue)) {
+    				sb.append("   a) Hodnota odtlaèku ds:DigestValue sedí.\n");
+    			} else sb.append("   a) CHYBA hodnota odtlaèku ds:DigestValue nesedí\n");
+        	}		
 		}
 		return sb.toString();
 	}
@@ -531,7 +567,7 @@ public class DocVerifyUtils {
 		sb.append(checkDsKeyInfo(doc));
 		sb.append(checkDsSignatureProperties(doc));
 		sb.append(checkDsManifest(doc));
-		sb.append(checkDsManifestReferences(doc));
+		//sb.append(checkDsManifestReferences(doc));
 		
 		return sb.toString();
 	}

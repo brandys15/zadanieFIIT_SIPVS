@@ -6,9 +6,19 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringWriter;
 
 import org.apache.xml.security.exceptions.Base64DecodingException;
 import org.apache.xml.security.utils.Base64;
+import org.w3c.dom.Element;
+
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
 
 public class ResourceUtils {
 	static public InputStream getResourceAsStream(String name) throws FileNotFoundException {
@@ -50,5 +60,21 @@ public class ResourceUtils {
 		} finally {
 			is.close();
 		}
+	}
+	
+	static public byte[] elementToBytes(Element node) throws TransformerConfigurationException {
+		byte[] result = null;
+		TransformerFactory transFactory = TransformerFactory.newInstance();
+		Transformer transformer = transFactory.newTransformer();
+		StringWriter buffer = new StringWriter();
+		transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+		try {
+			transformer.transform(new DOMSource(node),
+			new StreamResult(buffer));
+		} catch (TransformerException e) {
+			e.printStackTrace();
+		}
+		result = buffer.toString().getBytes();
+		return result;
 	}
 }
