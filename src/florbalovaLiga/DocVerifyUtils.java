@@ -4,6 +4,8 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 
@@ -363,15 +365,126 @@ public class DocVerifyUtils {
 		
 		if(certSubjectName.equals(docSubjectName))
 			sb.append("   s) - objekt ds:X509SubjectName sa zhoduje s hodnotou v certifikáte." + '\n');
-		else sb.append("   s) - CHYBA - objekt ds:X509SubjectName sa zhoduje s hodnotou v certifikáte." + '\n' + "Jeho hodnota je " + docSubjectName + '\n');
+		else sb.append("   s) - CHYBA - objekt ds:X509SubjectName sa zhoduje s hodnotou v certifikáte." + '\n' + "              - jeho hodnota je " + docSubjectName + '\n');
 		
 		if(certSerialNum.equals(docSerialNum))
-			sb.append("       - objekt ds:X509SerialNumber sa zhoduje s hodnotou v certifikáte." + '\n');
-		else sb.append("       - CHYBA - objekt ds:X509SerialNumber sa nezhoduje s hodnotou v certifikáte." + '\n' + "Jeho hodnota je " + docSerialNum + '\n');
+			sb.append("      - objekt ds:X509SerialNumber sa zhoduje s hodnotou v certifikáte." + '\n');
+		else sb.append("      - CHYBA - objekt ds:X509SerialNumber sa nezhoduje s hodnotou v certifikáte." + '\n' + "              - jeho hodnota je " + docSerialNum + '\n');
 		
 		if(certIssuerName.equals(docIssuerName))
-			sb.append("       - objekt ds:X509IssuerName sa zhoduje s hodnotou v certifikáte." + '\n');
-		else sb.append("       - CHYBA - objekt ds:X509IssuerName sa nezhoduje s hodnotou v certifikáte." + '\n' + "Jeho hodnota je " + docIssuerName + '\n');
+			sb.append("      - objekt ds:X509IssuerName sa zhoduje s hodnotou v certifikáte." + '\n');
+		else sb.append("      - CHYBA - objekt ds:X509IssuerName sa nezhoduje s hodnotou v certifikáte." + '\n' + "              - jeho hodnota je " + docIssuerName + '\n');
+		
+		return sb.toString();
+	}
+	private String checkDsSignatureProperties(Document doc) {
+		StringBuilder sb = new StringBuilder();
+		Element sigProps = (Element) doc.getElementsByTagName("ds:SignatureProperties").item(0);
+		
+		String sigPropsId = sigProps.getAttribute("Id");
+		if(sigPropsId == null || sigPropsId.equals(""))
+			sb.append("   t) CHYBA - element ds:SignatureProperties neobsahuje atribút Id." + '\n');
+		else sb.append("   t) Element ds:SignatureProperties obsahuje atribút Id." + '\n'); 
+		
+		boolean xzepSigVersion = false, xzepProductInfo = false;
+		NodeList sigPropertyList = sigProps.getElementsByTagName("ds:SignatureProperty");
+		Element xzepSig = null, xzepProduct = null;
+		
+		for(int i = 0; i < sigPropertyList.getLength(); i++) {
+			Element elem = (Element)sigPropertyList.item(i);
+			NodeList nextElem = elem.getElementsByTagName("xzep:SignatureVersion");
+			
+			if(nextElem.getLength() == 0) {
+				nextElem = elem.getElementsByTagName("xzep:ProductInfos");
+				if(nextElem.getLength() != 0) {
+					xzepProductInfo = true;
+					xzepProduct = elem;
+				}
+			}
+			else {
+				xzepSigVersion = true;
+				xzepSig = elem;
+			}
+		}
+		
+		if(xzepSigVersion) {
+			sb.append("   u) - ds:SignatureProperties obsahuje element ds:SignatureProperty s elementom xzep:SignatureVersion." + '\n');
+			
+			String xzepId = xzepSig.getAttribute("Target");
+			if(xzepId == null || xzepId.equals(""))
+				sb.append("      - CHYBA - element ds:SignatureProperty neobsahuje atribút Id." + '\n');
+			else sb.append("      - Element ds:SignatureProperty obsahuje atribút Id." + '\n'); 
+		}
+		else sb.append("   u) CHYBA - ds:SignatureProperties neobsahuje element ds:SignatureProperty s elementom xzep:SignatureVersion." + '\n');
+		
+		if(xzepProductInfo) {
+			sb.append("   v) - ds:SignatureProperties obsahuje element ds:SignatureProperty s elementom xzep:ProductInfos." + '\n');
+			
+			String xzepId = xzepProduct.getAttribute("Target");
+			if(xzepId == null || xzepId.equals(""))
+				sb.append("      - CHYBA - element ds:SignatureProperty neobsahuje atribút Id." + '\n');
+			else sb.append("      - Element ds:SignatureProperty obsahuje atribút Id." + '\n'); 
+		}
+		else sb.append("   v) CHYBA - ds:SignatureProperties neobsahuje element ds:SignatureProperty s elementom xzep:ProductInfos." + '\n');
+		
+		return sb.toString();
+	}
+	private String checkDsManifest(Document doc) {
+		StringBuilder sb = new StringBuilder();
+		NodeList manifests = doc.getElementsByTagName("ds:Manifest");
+		
+		sb.append("   w) Kontrola ds:Manifest elementov." + '\n');
+		for(int i = 0; i < manifests.getLength(); i++) {
+			String canonAlgs[] = { "http://www.w3.org/TR/2001/REC-xml-c14n-20010315", "http://www.w3.org/2000/09/xmldsig#base64"};
+			String cryptoAlgs[] = 
+				{ "http://www.w3.org/2000/09/xmldsig#dsa-sha1",
+				  "http://www.w3.org/2000/09/xmldsig#rsa-sha1",
+				  "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256",
+				  "http://www.w3.org/2001/04/xmldsig-more#rsa-sha384",
+				  "http://www.w3.org/2001/04/xmldsig-more#rsa-sha512",
+				  "http://www.w3.org/2000/09/xmldsig#sha1",
+				  "http://www.w3.org/2001/04/xmldsig-more#sha224",
+				  "http://www.w3.org/2001/04/xmlenc#sha256",
+				  "http://www.w3.org/2001/04/xmldsig-more#sha384",
+				  "http://www.w3.org/2001/04/xmlenc#sha512" };
+			ArrayList<String> canonList = new ArrayList<String>(Arrays.asList(canonAlgs));
+			ArrayList<String> cryptoList = new ArrayList<String>(Arrays.asList(cryptoAlgs));
+			
+			Element elem = (Element) manifests.item(i);
+			String id = elem.getAttribute("Id");
+			
+			if(id == null || id.equals(""))
+				sb.append("      " + (i + 1) + ". manifest - CHYBA - daný manifest neobsahuje atribút Id." + '\n');
+			else sb.append("      " + (i + 1) + ". manifest - obsahuje atribút Id." + '\n');
+			
+			NodeList references = elem.getElementsByTagName("ds:Reference");
+			if(references.getLength() > 1) {
+				int counter = 0;
+				for(int j = 0; j < references.getLength(); j++) {
+					if(((Element)references.item(j)).getAttribute("URI").contains("Object"))
+						counter++;
+				}
+				
+				if(counter != 1)
+					sb.append("      " + (i + 1) + ". manifest - CHYBA - element obsahuje nesprávny poèet referencií (" + counter + ") na ds:Object" + '\n');
+				sb.append("      " + (i + 1) + ". manifest obsahuje správny poèet referencií na ds:Object." + '\n');
+			}
+			else sb.append("      " + (i + 1) + ". manifest obsahuje správny poèet referencií na ds:Object." + '\n');
+			
+			Element tempElem = ((Element)((Element)elem.getElementsByTagName("ds:Reference").item(0)).getElementsByTagName("ds:Transforms").item(0));
+			String transAlg = ((Element)tempElem.getElementsByTagName("ds:Transform").item(0)).getAttribute("Algorithm");
+			
+			tempElem = ((Element)((Element)elem.getElementsByTagName("ds:Reference").item(0)).getElementsByTagName("ds:DigestMethod").item(0));
+			String digAlg = tempElem.getAttribute("Algorithm");
+			
+			if(canonList.contains(transAlg))
+				sb.append("      " + (i + 1) + ". manifest obsahuje pre ds:Transforms podporovaný algoritmus transformácie." + '\n');
+			else sb.append("      " + (i + 1) + ". manifest - CHYBA - neobsahuje pre ds:Transforms podporovaný algoritmus transformácie." + '\n');
+			
+			if(cryptoList.contains(digAlg))
+				sb.append("      " + (i + 1) + ". manifest obsahuje pre ds:DigestMethod podporovaný algoritmus šifrovania." + '\n');
+			else sb.append("      " + (i + 1) + ". manifest - CHYBA - neobsahuje pre ds:DigestMethod podporovaný algoritmus šifrovania." + '\n');
+		}
 		
 		return sb.toString();
 	}
@@ -383,6 +496,8 @@ public class DocVerifyUtils {
 		sb.append(checkDsSignatureValue(doc));
 		sb.append(checkDsSignedInfo(doc));
 		sb.append(checkDsKeyInfo(doc));
+		sb.append(checkDsSignatureProperties(doc));
+		sb.append(checkDsManifest(doc));
 		
 		return sb.toString();
 	}
