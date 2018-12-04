@@ -1,10 +1,9 @@
 package florbalovaLiga;
 import florbalovaLiga.ResourceUtils;
-import jdk.internal.org.xml.sax.SAXException;
-
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateFactory;
@@ -19,11 +18,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-
-import javax.xml.xpath.*;
-
 import org.apache.xml.security.c14n.CanonicalizationException;
 import org.apache.xml.security.c14n.Canonicalizer;
 import org.apache.xml.security.c14n.InvalidCanonicalizerException;
@@ -33,7 +27,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-
 
 public class DocVerifyUtils {
 	private static DocVerifyUtils instance = null;
@@ -536,23 +529,25 @@ public class DocVerifyUtils {
 			//sb.append("      " + (i + 1) + ". manifest - ." + '\n');
 			Element manElem = (Element) manifests.item(i);
 			Element refElem = (Element) manElem.getElementsByTagName("ds:Reference").item(0);
-			Element transElem = (Element) refElem.getElementsByTagName("ds:Transforms").item(0);
-			Element tranElem = (Element) transElem.getElementsByTagName("ds:Transform").item(0);
-			
-			String transAlg = tranElem.getAttribute("Algorithm");
 			String digValue = ((Element)refElem.getElementsByTagName("ds:DigestValue").item(0)).getTextContent();
-			byte[] digBytes = digValue.getBytes();
+			//Element transElem = (Element) refElem.getElementsByTagName("ds:Transforms").item(0);
+			//Element tranElem = (Element) transElem.getElementsByTagName("ds:Transform").item(0);
 			
+			//String transAlg = tranElem.getAttribute("Algorithm");
+			//byte[] digBytes = digValue.getBytes();
+			//System.out.println(new String(Base64.getEncoder().encode(digest.digest(digBytes))));
+			//System.out.println(new String(Base64.getEncoder().encode(digest.digest(objBytes))));
+			
+			Init.init();
+			Canonicalizer canon = Canonicalizer.getInstance(Canonicalizer.ALGO_ID_C14N_OMIT_COMMENTS);
+			byte[] objBytes = canon.canonicalize(digValue.getBytes("UTF-8"));
+			String canonizedDig = new String(objBytes);
+
 			MessageDigest digest = MessageDigest.getInstance("SHA-256");
+			byte[] hash = digest.digest(canonizedDig.getBytes(StandardCharsets.UTF_8));
 			
-			System.out.println(new String(Base64.getEncoder().encode(digest.digest(digBytes))));
-			//System.out.println(new String(Base64.getDecoder().decode(digest.digest(digBytes))));
-			
-			Canonicalizer canonicalizer = Canonicalizer.getInstance(transAlg);
-			byte[] objBytes = canonicalizer.canonicalize(digBytes);
-			
-			digest.reset();
-			System.out.println(new String(Base64.getEncoder().encode(digest.digest(objBytes))));
+			byte[] encodedBytes = org.bouncycastle.util.encoders.Base64.encode(hash);
+			System.out.println(new String(encodedBytes));
 		}
 		
 		return sb.toString();
@@ -567,7 +562,7 @@ public class DocVerifyUtils {
 		sb.append(checkDsKeyInfo(doc));
 		sb.append(checkDsSignatureProperties(doc));
 		sb.append(checkDsManifest(doc));
-		//sb.append(checkDsManifestReferences(doc));
+		sb.append(checkDsManifestReferences(doc));
 		
 		return sb.toString();
 	}
