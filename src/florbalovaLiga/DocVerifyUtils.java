@@ -107,38 +107,52 @@ public class DocVerifyUtils {
 	
 	private String checkXMLSignature(Document doc) throws Exception {
 		StringBuilder sb = new StringBuilder();
-		String content;
+		String content = null;
 		boolean checker = false;
+		
 		Node sigMethodElem = doc.getElementsByTagName("ds:SignatureMethod").item(0);
 		Node canMethodElem = doc.getElementsByTagName("ds:CanonicalizationMethod").item(0);
 		Node sigInfo = doc.getElementsByTagName("ds:SignedInfo").item(0);	
+		
 		NodeList nodeListTransform = ((Element) sigInfo).getElementsByTagName("ds:Transform");
 		NodeList nodeListDigest = ((Element) sigInfo).getElementsByTagName("ds:DigestMethod");
-		for(int x = 0,size= nodeListTransform.getLength(); x<size; x++) {
+		
+		for(int x = 0, size = nodeListTransform.getLength(); x < size; x++) {
             content = nodeListTransform.item(x).getAttributes().getNamedItem("Algorithm").getNodeValue();
             if (!content.matches("http://www.w3.org/TR/2001/REC-xml-c14n-20010315")) {
-            	sb.append("Chyba, "+ (x + 1) + ". transform neobsahuje podporovaný algoritmus ale" + content + "\n");
+            	sb.append("   CHYBA - " + (x + 1) + ". ds:Transform neobsahuje podporovaný algoritmus." + '\n');
+            	sb.append("       Hodnota atribútu je: " + content + '\n');
             	checker = true;
             }
+            else sb.append("   " + (x + 1) + ". ds:Transform obsahuje podporovaný algoritmus." + '\n');
         }
-		for(int x=0,size= nodeListDigest.getLength(); x<size; x++) {
+		for(int x = 0, size = nodeListDigest.getLength(); x < size; x++) {
             content = nodeListDigest.item(x).getAttributes().getNamedItem("Algorithm").getNodeValue();
         	if (!content.matches("http://www.w3.org/200[01]/0[49]/xml((dsig-more#sha[23][28]4)|(dsig#sha1)|(enc#sha[25][15][26]))")) {
-        	sb.append("Chyba, "+ (x + 1) + ". digestMethod neobsahuje podporovaný algoritmus ale" + content + "\n");
-        	checker = true;
+        		sb.append("   CHYBA - " + (x + 1) + ". ds:DigestMethod neobsahuje podporovaný algoritmus." + '\n');
+        		sb.append("       Hodnota atribútu je: " + content + "\n");
+        		checker = true;
         	}
+        	else sb.append("   " + (x + 1) + ". ds:DigestMethod obsahuje podporovaný algoritmus." + '\n');
 		}
+		
 		String sigValue = sigMethodElem.getAttributes().getNamedItem("Algorithm").getNodeValue();
 		String canValue = canMethodElem.getAttributes().getNamedItem("Algorithm").getNodeValue();
 		if (!sigValue.matches("http://www.w3.org/200[01]/0[49]/xmldsig((-more#rsa-sha[235][158][246])|(#[dr]sa-sha1))")) {
-			sb.append("Chyba, SignatureMethod neobsahuje podporovaný algoritmus ale " + sigValue);
+			sb.append("   CHYBA - ds:SignatureMethod neobsahuje podporovaný algoritmus." + '\n');
+			sb.append("       Hodnota daného atribútu je: " + sigValue + '\n');
 			checker = true;
 		}
-		else if(!canValue.matches("http://www.w3.org/TR/2001/REC-xml-c14n-20010315")) {
-			sb.append("Chyba, CanonicalizationMethod neobsahuje podporovaný algoritmus ale " + sigValue);
+		else sb.append("   ds:SignatureMethod obsahuje správnu hodnotu." + '\n');
+		
+		if(!canValue.matches("http://www.w3.org/TR/2001/REC-xml-c14n-20010315")) {
+			sb.append("   CHYBA - ds:CanonicalizationMethod neobsahuje podporovaný algoritmus." + '\n');
+			sb.append("       Hodnota daného atribútu je: " + canValue + '\n');
 			checker = true;
 		}
-		else if (checker) {
+		else sb.append("   ds:CanonicalizationMethod obsahuje správnu hodnotu." + '\n');
+		
+		if (checker) {
 			sb.append("   ZHRNUTIE - Daný dokument NESPÅÒA všetky požiadavky oèakávaný pre overenie XML Signature." + '\n');
 		} 
 		else sb.append("   ZHRNUTIE - Daný dokument SPÅÒA všetky požiadavky oèakávaný pre overenie XML Signature." + '\n');
