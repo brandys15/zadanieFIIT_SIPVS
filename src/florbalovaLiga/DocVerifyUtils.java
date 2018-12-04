@@ -2,6 +2,8 @@ package florbalovaLiga;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.StringWriter;
+import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateFactory;
@@ -14,7 +16,12 @@ import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 import org.apache.xml.security.Init;
 import org.apache.xml.security.c14n.CanonicalizationException;
@@ -402,7 +409,7 @@ public class DocVerifyUtils {
 		
 		if(certIssuerName.equals(docIssuerName))
 			sb.append("      - objekt ds:X509IssuerName sa zhoduje s hodnotou v certifikáte." + '\n');
-		else sb.append("      - CHYBA - objekt ds:X509IssuerName sa nezhoduje s hodnotou v certifikáte." + '\n' + "              - jeho hodnota je " + docIssuerName + '\n');
+		else sb.append("      - CHYBA - objekt ds:X509IssuerName sa nezhoduje s hodnotou v certifikáte." + '\n' + "              - jeho hodnota je             " + docIssuerName + '\n' + "              - oèakávaná hodnota je   " + certIssuerName + '\n');
 		
 		return sb.toString();
 	}
@@ -518,29 +525,54 @@ public class DocVerifyUtils {
 		return sb.toString();
 	}
 	private String checkDsManifestReferences(Document doc) throws Exception {
+		TransformerFactory transFactory = TransformerFactory.newInstance();
+		Transformer transformer = transFactory.newTransformer();
 		StringBuilder sb = new StringBuilder();
 		NodeList manifests = doc.getElementsByTagName("ds:Manifest");
 		
 		sb.append("   x) Kontrola referencií ds:Manifest elementov." + '\n');
 		for(int i = 0; i < manifests.getLength(); i++) {
-			//sb.append("      " + (i + 1) + ". manifest - ." + '\n');
 			Element manElem = (Element) manifests.item(i);
 			Element refElem = (Element) manElem.getElementsByTagName("ds:Reference").item(0);
 			Element digElem = (Element)refElem.getElementsByTagName("ds:DigestValue").item(0);
-			//String digValue = digElem.getTextContent();
 			
 			Element transElem = (Element) refElem.getElementsByTagName("ds:Transforms").item(0);
 			Element tranElem = (Element) transElem.getElementsByTagName("ds:Transform").item(0);
 			String transAlg = tranElem.getAttribute("Algorithm");
+			if(!transAlg.equals("http://www.w3.org/TR/2001/REC-xml-c14n-20010315")) {
+				sb.append("      " + (i + 1) + ". manifest - CHYBA - daný algoritmus pre kanonikalizáciu nie je podporovaný, alebo neexistuje. Preto nie je možné overi správnos objektu ds:DigestValue." + '\n');
+				continue;
+			}
 			
+			String uri = refElem.getAttribute("URI").replaceAll("#","");
+			NodeList objects = doc.getElementsByTagName("ds:Object");
+			Element searchedObject = null;
+			for(int j = 0; j < objects.getLength(); j++) {
+				Element elem = (Element)objects.item(j);
+				
+				if(elem.hasAttribute("Id") && elem.getAttribute("Id").equals(uri)) {
+					searchedObject = elem;
+					break;
+				}
+			}
+			
+			StringWriter buffer = new StringWriter();
+			transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+			transformer.transform(new DOMSource(searchedObject), new StreamResult(buffer));
+
 			Init.init();
 			Canonicalizer canonicalizer = Canonicalizer.getInstance(transAlg);
     		MessageDigest digest = MessageDigest.getInstance("SHA-256");
     		
-    		byte[] manifestBytes = canonicalizer.canonicalize(ResourceUtils.elementToBytes(digElem));
+    		byte[] docToCanonicalize = buffer.toString().getBytes(Charset.forName("UTF-8"));    		
+    		byte[] manifestBytes = canonicalizer.canonicalize(docToCanonicalize);
     		String calculatedDigestValue = new String(Base64.getEncoder().encode(digest.digest(manifestBytes)));
     		
-    		System.out.println(calculatedDigestValue);
+    		if(calculatedDigestValue.equals(digElem.getTextContent()))
+    			sb.append("      " + (i + 1) + ". manifest - vypoèítaná hodnota pre daný ds:Object zodpovedá hodnote ds:DigestValue." + '\n');
+    		else sb.append("      " + (i + 1) + ". manifest - CHYBA - vypoèítaná hodnota pre daný ds:Object nezodpovedá hodnote ds:DigestValue." 
+    								+ '\n' + "        Vypoèítaná hodnota je: " + calculatedDigestValue
+    								+ ", oèakávaná hodnota bola: " + digElem.getTextContent() + '\n');
 		}
 		
 		return sb.toString();
