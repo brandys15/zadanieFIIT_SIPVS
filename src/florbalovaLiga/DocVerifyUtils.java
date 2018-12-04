@@ -2,6 +2,7 @@ package florbalovaLiga;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.security.MessageDigest;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -16,6 +17,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+
+import com.sun.org.apache.xml.internal.security.c14n.Canonicalizer;
 
 public class DocVerifyUtils {
 	private static DocVerifyUtils instance = null;
@@ -488,6 +491,36 @@ public class DocVerifyUtils {
 		
 		return sb.toString();
 	}
+	private String checkDsManifestReferences(Document doc) throws Exception {
+		StringBuilder sb = new StringBuilder();
+		NodeList manifests = doc.getElementsByTagName("ds:Manifest");
+		
+		sb.append("   x) Kontrola referencií ds:Manifest elementov." + '\n');
+		for(int i = 0; i < manifests.getLength(); i++) {
+			//sb.append("      " + (i + 1) + ". manifest - ." + '\n');
+			Element manElem = (Element) manifests.item(i);
+			Element refElem = (Element) manElem.getElementsByTagName("ds:Reference").item(0);
+			Element transElem = (Element) refElem.getElementsByTagName("ds:Transforms").item(0);
+			Element tranElem = (Element) transElem.getElementsByTagName("ds:Transform").item(0);
+			
+			String transAlg = tranElem.getAttribute("Algorithm");
+			String digValue = ((Element)refElem.getElementsByTagName("ds:DigestValue").item(0)).getTextContent();
+			byte[] digBytes = digValue.getBytes();
+			
+			MessageDigest digest = MessageDigest.getInstance("SHA-256");
+			
+			System.out.println(new String(Base64.getEncoder().encode(digest.digest(digBytes))));
+			//System.out.println(new String(Base64.getDecoder().decode(digest.digest(digBytes))));
+			
+			Canonicalizer canonicalizer = Canonicalizer.getInstance(transAlg);
+			byte[] objBytes = canonicalizer.canonicalize(digBytes);
+			
+			digest.reset();
+			System.out.println(new String(Base64.getEncoder().encode(digest.digest(objBytes))));
+		}
+		
+		return sb.toString();
+	}
 	
 	private String checkOtherXAdESElements(Document doc) throws Exception {
 		StringBuilder sb = new StringBuilder();
@@ -498,6 +531,7 @@ public class DocVerifyUtils {
 		sb.append(checkDsKeyInfo(doc));
 		sb.append(checkDsSignatureProperties(doc));
 		sb.append(checkDsManifest(doc));
+		sb.append(checkDsManifestReferences(doc));
 		
 		return sb.toString();
 	}
