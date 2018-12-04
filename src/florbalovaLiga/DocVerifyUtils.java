@@ -4,9 +4,14 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.charset.Charset;
+import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.Security;
+import java.security.Signature;
+import java.security.SignatureException;
 import java.security.cert.CertificateFactory;
+import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -18,6 +23,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
@@ -27,6 +33,12 @@ import org.apache.xml.security.Init;
 import org.apache.xml.security.c14n.CanonicalizationException;
 import org.apache.xml.security.c14n.Canonicalizer;
 import org.apache.xml.security.c14n.InvalidCanonicalizerException;
+import org.bouncycastle.asn1.ASN1InputStream;
+import org.bouncycastle.asn1.ASN1Primitive;
+import org.bouncycastle.asn1.ASN1Sequence;
+import org.bouncycastle.asn1.x509.Certificate;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.jce.provider.X509CertificateObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -66,6 +78,7 @@ public class DocVerifyUtils {
 			
 			sb.append("3. Core validácia:" + '\n');
 			sb.append(checkSignatureReference(doc));
+			sb.append(checkSignatureValue(doc));
 			sb.append(checkOtherXAdESElements(doc));
 			sb.append("----------------------------------------------------------------------------------------------\n");
 		}
@@ -218,6 +231,51 @@ public class DocVerifyUtils {
 		return sb.toString();
 	}
 	
+	private String checkSignatureValue(Document doc) throws InvalidCanonicalizerException, CanonicalizationException, TransformerConfigurationException, ParserConfigurationException, IOException, org.xml.sax.SAXException, CertificateParsingException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+		StringBuilder sb = new StringBuilder();
+		byte[] sigInfoBytes = null; 
+		Signature sign = null;
+		X509CertificateObject certObj = null;
+		ASN1InputStream inputStream = null;
+		Element sigInfo = (Element) doc.getElementsByTagName("ds:SignedInfo").item(0);
+		String sigValue = doc.getElementsByTagName("ds:SignatureValue").item(0).getTextContent();
+		String canonMethod = "http://www.w3.org/TR/2001/REC-xml-c14n-20010315";
+		String x509Certificate = doc.getElementsByTagName("ds:X509Certificate").item(0).getTextContent();
+		
+		Canonicalizer canonicalizer = Canonicalizer.getInstance(canonMethod);
+		sigInfoBytes = canonicalizer.canonicalize(ResourceUtils.elementToBytes(sigInfo));
+		
+		inputStream = new ASN1InputStream(new ByteArrayInputStream(Base64.getDecoder().decode(x509Certificate.getBytes())));
+		ASN1Primitive primitive = inputStream.readObject();
+		ASN1Sequence sequence = ASN1Sequence.getInstance(primitive);
+		certObj = new X509CertificateObject(Certificate.getInstance(sequence));
+		
+		Security.addProvider(new BouncyCastleProvider());
+		sign = Signature.getInstance("SHA256withRSA");
+		sign.initVerify(certObj.getPublicKey());
+		sign.update(sigInfoBytes);
+		if (!sign.verify(Base64.getDecoder().decode(sigValue.getBytes()))) {
+			sb.append("   b) CHYBA overenie hodnoty ds:SignatureValue zlyhalo.\n");
+		} else {
+			sb.append("   b) Overenie ds:SignatureValue bolo úspešné.\n");
+		}
+		inputStream.close();
+		return sb.toString();
+	}
+	
+	private String checkOtherXAdESElements(Document doc) throws Exception {
+		StringBuilder sb = new StringBuilder();
+		
+		sb.append(checkDsSignature(doc));
+		sb.append(checkDsSignatureValue(doc));
+		sb.append(checkDsSignedInfo(doc));
+		sb.append(checkDsKeyInfo(doc));
+		sb.append(checkDsSignatureProperties(doc));
+		sb.append(checkDsManifest(doc));
+		sb.append(checkDsManifestReferences(doc));
+		
+		return sb.toString();
+	}
 	private String checkDsSignature(Document doc) {
 		StringBuilder sb = new StringBuilder();
 		
@@ -578,17 +636,4 @@ public class DocVerifyUtils {
 		return sb.toString();
 	}
 	
-	private String checkOtherXAdESElements(Document doc) throws Exception {
-		StringBuilder sb = new StringBuilder();
-		
-		sb.append(checkDsSignature(doc));
-		sb.append(checkDsSignatureValue(doc));
-		sb.append(checkDsSignedInfo(doc));
-		sb.append(checkDsKeyInfo(doc));
-		sb.append(checkDsSignatureProperties(doc));
-		sb.append(checkDsManifest(doc));
-		sb.append(checkDsManifestReferences(doc));
-		
-		return sb.toString();
-	}
 }
