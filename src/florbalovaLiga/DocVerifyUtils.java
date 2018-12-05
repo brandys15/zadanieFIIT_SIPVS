@@ -776,7 +776,7 @@ public class DocVerifyUtils {
 			
 			
 		
-		sb.append("5. Validácia podpisového certifikátu:" + '\n');
+		
 		
 		
 		
@@ -786,7 +786,7 @@ public class DocVerifyUtils {
 		signatureValueN = doc.getElementsByTagName("ds:SignatureValue").item(0);
 
 		if(signatureValueN==null) {
-			sb.append("   a) CHYBA - Element ds:SignatureValue nenájdenı."+ '\n');
+			sb.append("   c) CHYBA - Element ds:SignatureValue nenájdenı."+ '\n');
 			return sb.toString();
 			
 		}
@@ -802,7 +802,7 @@ public class DocVerifyUtils {
 		try {
 			messageDigest = MessageDigest.getInstance(hashAlg, "BC");
 		} catch (NoSuchAlgorithmException | NoSuchProviderException e) {
-			sb.append("   a) CHYBA -Nepodporovanı algoritmus v message digest."+ '\n');
+			sb.append("   c) CHYBA -Nepodporovanı algoritmus v message digest."+ '\n');
 		}
 		
 		
@@ -811,17 +811,18 @@ public class DocVerifyUtils {
 
 		//porovnanie signatureValue a Imprint
 		if (!Arrays.equals(messageImprint, messageDigest.digest(signatureValue))){
-			sb.append("   a) CHYBA - MessageImprint z èasovej peèiatky a podpis ds:SignatureValue sa nezhodujú." + '\n');
+			sb.append("   c) CHYBA - MessageImprint z èasovej peèiatky a podpis ds:SignatureValue sa nezhodujú." + '\n');
 		}else {
-			sb.append("   a) MessageImprint z èasovej peèiatky a podpis ds:SignatureValue sa zhodujú." + '\n');
+			sb.append("   c) MessageImprint z èasovej peèiatky a podpis ds:SignatureValue sa zhodujú." + '\n');
 		}
 		//Vytiahnutie certifikatu z dokumentu
 		Node x509Certificate = doc.getElementsByTagName("ds:X509Certificate").item(0);
 		
 		if (x509Certificate == null){
-			sb.append("  b) CHYBA - Element ds:X509Certificate nenájdenı.");
+			sb.append("  c) CHYBA - Element ds:X509Certificate nenájdenı.");
 		}
 		
+		sb.append("5. Validácia podpisového certifikátu:" + '\n');
 		
 		ASN1InputStream asn1is = new ASN1InputStream(new ByteArrayInputStream(Base64.getDecoder().decode(x509Certificate.getTextContent())));
 		
@@ -830,14 +831,17 @@ public class DocVerifyUtils {
 		X509CertificateObject cert = null;
 		try {
 			sq = (ASN1Sequence) asn1is.readObject();
+			
 		} catch (IOException e) {
-			sb.append("   b) CHYBA - Nie je moné preèíta ASN1 sekvenciu."+ '\n');
+			sb.append("   CHYBA - Nie je moné preèíta ASN1 sekvenciu."+ '\n');
 		}
 		try {
 			cert = new X509CertificateObject(Certificate.getInstance(sq));
 		} catch (CertificateParsingException e) {
-			sb.append("   b) CHYBA - Nie je moné preèíta Certifikát z dokumentu."+ '\n');
+			sb.append("   CHYBA - Nie je moné preèíta Certifikát z dokumentu."+ '\n');
 		}
+		
+		
 		try {
 			asn1is.close();
 		} catch (IOException e) {
@@ -846,15 +850,18 @@ public class DocVerifyUtils {
 		
 		//Zistenie ci bol certifikat platny pri podpise
 		
+		Boolean valid = false;
 		try {
 			cert.checkValidity(ts_token.getTimeStampInfo().getGenTime());
+			valid = true; 
 		} catch (CertificateExpiredException e) {
 			
-			sb.append("   b) CHYBA - Certifikát dokumentu bol pri podpise expirovanı."+ '\n');
+			sb.append("   a) CHYBA - Certifikát dokumentu bol pri podpise expirovanı."+ '\n');
 		} catch (CertificateNotYetValidException e) {
 			
-			sb.append("   b) CHYBA - Certifikát dokumentu ešte nebol platnı v èase podpisovania."+ '\n');
+			sb.append("   a) CHYBA - Certifikát dokumentu ešte nebol platnı v èase podpisovania."+ '\n');
 		}
+		if(valid==true)sb.append("   a) Certifikát dokumentu bol platnı v èase podpisovania."+ '\n');
 		
 		
 		//zistenie ci bol certifikat platny v case podpisu
@@ -863,7 +870,7 @@ public class DocVerifyUtils {
 		if (entry != null && entry.getRevocationDate().before(ts_token.getTimeStampInfo().getGenTime())) {
 			
 			sb.append("   b) CHYBA - Certifikát bol zrušenı v èase podpisovania."+ '\n');
-		}else sb.append("   b) Certifikát bol platnı v èase podpisovania."+ '\n');
+		}else sb.append("   b) Certifikát nebol zrušenı v èase podpisovania."+ '\n');
 		
 		
 		return sb.toString();
